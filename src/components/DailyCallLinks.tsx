@@ -3,13 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Video, ExternalLink } from 'lucide-react';
-import { format } from 'date-fns';
+import { Plus, Edit, Trash2, Video, ExternalLink, Calendar, Save } from 'lucide-react';
+import { format, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface DailyCallLink {
@@ -22,8 +23,12 @@ export const DailyCallLinks = () => {
   const [links, setLinks] = useState<DailyCallLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [editingLink, setEditingLink] = useState<DailyCallLink | null>(null);
+  const [editingDateId, setEditingDateId] = useState<number | null>(null);
   const [formData, setFormData] = useState({ call_date: '', meet_link: '' });
+  const [bulkLinks, setBulkLinks] = useState('');
+  const [editingDate, setEditingDate] = useState('');
 
   useEffect(() => {
     fetchLinks();
@@ -65,6 +70,128 @@ export const DailyCallLinks = () => {
     setDialogOpen(false);
     setEditingLink(null);
     setFormData({ call_date: '', meet_link: '' });
+  };
+
+  const openBulkDialog = () => {
+    setBulkLinks('');
+    setBulkDialogOpen(true);
+  };
+
+  const closeBulkDialog = () => {
+    setBulkDialogOpen(false);
+    setBulkLinks('');
+  };
+
+  const saveBulkLinks = async () => {
+    if (!bulkLinks.trim()) {
+      toast({
+        title: "Campo vazio",
+        description: "Por favor, insira pelo menos um link.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const linksArray = bulkLinks.split('\n').filter(link => link.trim());
+    if (linksArray.length === 0) {
+      toast({
+        title: "Nenhum link válido",
+        description: "Por favor, insira pelo menos um link válido.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const today = new Date();
+      const linksToInsert = linksArray.map((link, index) => ({
+        call_date: format(addDays(today, index), 'yyyy-MM-dd'),
+        meet_link: link.trim()
+      }));
+
+      const { error } = await supabase
+        .from('daily_call_links')
+        .insert(linksToInsert);
+
+      if (error) throw error;
+
+      toast({
+        title: "Links adicionados!",
+        description: `${linksArray.length} link(s) foram adicionados com sucesso.`,
+      });
+
+      fetchLinks();
+      closeBulkDialog();
+    } catch (error: any) {
+      console.error('Error saving bulk links:', error);
+      
+      let errorMessage = "Não foi possível salvar os links.";
+      if (error.code === '23505') {
+        errorMessage = "Algumas datas já possuem links cadastrados.";
+      }
+      
+      toast({
+        title: "Erro ao salvar",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startEditingDate = (link: DailyCallLink) => {
+    setEditingDateId(link.id);
+    setEditingDate(link.call_date);
+  };
+
+  const saveDateEdit = async (linkId: number) => {
+    try {
+      const { error } = await supabase
+        .from('daily_call_links')
+        .update({ call_date: editingDate })
+        .eq('id', linkId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Data atualizada!",
+        description: "A data foi atualizada com sucesso.",
+      });
+
+      fetchLinks();
+      setEditingDateId(null);
+      setEditingDate('');
+    } catch (error: any) {
+      console.error('Error updating date:', error);
+      
+      let errorMessage = "Não foi possível atualizar a data.";
+      if (error.code === '23505') {
+        errorMessage = "Já existe um link para esta data.";
+      }
+      
+      toast({
+        title: "Erro ao atualizar",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const cancelDateEdit = () => {
+    setEditingDateId(null);
+    setEditingDate('');
+  };
+
+  const handleDateKeyDown = (e: React.KeyboardEvent, linkId: number) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      saveDateEdit(linkId);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      cancelDateEdit();
+    }
   };
 
   const saveLink = async () => {
@@ -174,7 +301,49 @@ export const DailyCallLinks = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
+            <Dialog open={bulkDialogOpen} onOpenChange={setBulkDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" onClick={openBulkDialog}>
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Adicionar em Massa
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Adicionar Links em Massa</DialogTitle>
+                  <DialogDescription>
+                    Insira um link por linha. As datas serão geradas automaticamente começando de hoje.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="bulk_links">Links do Google Meet</Label>
+                    <Textarea
+                      id="bulk_links"
+                      value={bulkLinks}
+                      onChange={(e) => setBulkLinks(e.target.value)}
+                      placeholder="https://meet.google.com/abc-defg-hij&#10;https://meet.google.com/xyz-uvwx-rst&#10;https://meet.google.com/123-456-789"
+                      className="min-h-[120px] bg-input"
+                      rows={5}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Exemplo: O primeiro link será para hoje, o segundo para amanhã, e assim por diante.
+                    </p>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={closeBulkDialog}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={saveBulkLinks} disabled={!bulkLinks.trim() || loading}>
+                    <Save className="h-4 w-4 mr-2" />
+                    {loading ? 'Salvando...' : 'Salvar Links'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button onClick={() => openDialog()}>
@@ -244,7 +413,42 @@ export const DailyCallLinks = () => {
                   {links.map((link) => (
                     <TableRow key={link.id}>
                       <TableCell className="font-medium">
-                        {format(new Date(link.call_date), 'dd/MM/yyyy', { locale: ptBR })}
+                        {editingDateId === link.id ? (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="date"
+                              value={editingDate}
+                              onChange={(e) => setEditingDate(e.target.value)}
+                              onKeyDown={(e) => handleDateKeyDown(e, link.id)}
+                              className="w-32 bg-input"
+                              autoFocus
+                            />
+                            <Button
+                              size="sm"
+                              onClick={() => saveDateEdit(link.id)}
+                              className="h-8 px-2"
+                            >
+                              <Save className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={cancelDateEdit}
+                              className="h-8 px-2"
+                            >
+                              ✕
+                            </Button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => startEditingDate(link)}
+                            className="hover:bg-muted px-2 py-1 rounded transition-colors flex items-center gap-1"
+                            title="Clique para editar a data"
+                          >
+                            <Calendar className="h-3 w-3" />
+                            {format(new Date(link.call_date), 'dd/MM/yyyy', { locale: ptBR })}
+                          </button>
+                        )}
                       </TableCell>
                       <TableCell>
                         <a 
