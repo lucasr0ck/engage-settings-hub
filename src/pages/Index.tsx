@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { LaunchSettings } from '@/components/LaunchSettings';
 import { DailyCallLinks } from '@/components/DailyCallLinks';
-import { WhatsAppInstance } from '@/components/WhatsAppInstance';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, LogOut } from 'lucide-react';
 
@@ -62,12 +61,9 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
-        <div className="grid gap-8 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-8 lg:grid-cols-2">
           <LaunchSettings />
           <DailyCallLinks />
-          <div className="lg:col-span-2 xl:col-span-1">
-            <WhatsAppInstance />
-          </div>
         </div>
       </main>
     </div>
