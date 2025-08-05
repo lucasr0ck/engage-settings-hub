@@ -1,6 +1,7 @@
-# Build stage
-FROM node:18-alpine AS builder
+# Use Node.js 18 Alpine
+FROM node:18-alpine
 
+# Set working directory
 WORKDIR /app
 
 # Copy package files
@@ -15,28 +16,15 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Production stage
-FROM nginx:alpine
+# Install serve globally
+RUN npm install -g serve
 
-# Install curl for health checks
-RUN apk add --no-cache curl
-
-# Copy built application from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
-
-# Create health check script
-RUN echo '#!/bin/sh\ncurl -f http://localhost/health || exit 1' > /healthcheck.sh && \
-    chmod +x /healthcheck.sh
-
-# Expose port 80
-EXPOSE 80
+# Expose port 3000
+EXPOSE 3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD /healthcheck.sh
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"] 
+# Start the application
+CMD ["serve", "-s", "dist", "-l", "3000"] 
