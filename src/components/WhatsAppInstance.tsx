@@ -85,8 +85,8 @@ export const WhatsAppInstance = () => {
       if (instance) {
         setInstanceStatus(instance);
       } else {
-        // Se a instância não existe, criar
-        await createInstance();
+        // Se a instância não existe, apenas mostrar como não encontrada
+        setInstanceStatus(null);
       }
     } catch (error) {
       console.error('Error fetching instance status:', error);
@@ -100,42 +100,7 @@ export const WhatsAppInstance = () => {
     }
   };
 
-  const createInstance = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/instance/create`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': API_KEY
-        },
-        body: JSON.stringify({
-          instanceName: INSTANCE_NAME,
-          webhook: '',
-          webhookByEvents: false,
-          events: ['connection.update', 'qrcode.update'],
-          apikey: API_KEY
-        })
-      });
 
-      if (!response.ok) {
-        throw new Error('Falha ao criar instância');
-      }
-
-      toast({
-        title: "Instância criada!",
-        description: "Nova instância do WhatsApp foi criada com sucesso.",
-      });
-
-      fetchInstanceStatus();
-    } catch (error) {
-      console.error('Error creating instance:', error);
-      toast({
-        title: "Erro ao criar instância",
-        description: "Não foi possível criar a instância do WhatsApp.",
-        variant: "destructive",
-      });
-    }
-  };
 
   const connectInstance = async () => {
     setActionLoading('connect');
@@ -157,7 +122,10 @@ export const WhatsAppInstance = () => {
         description: "A instância está sendo conectada. Aguarde o QR Code.",
       });
 
-      fetchInstanceStatus();
+      // Aguarda um pouco e busca o status novamente para pegar o QR Code
+      setTimeout(() => {
+        fetchInstanceStatus();
+      }, 2000);
     } catch (error) {
       console.error('Error connecting instance:', error);
       toast({
@@ -187,10 +155,13 @@ export const WhatsAppInstance = () => {
 
       toast({
         title: "Desconectado!",
-        description: "A instância foi desconectada com sucesso.",
+        description: "A instância foi desconectada. Clique em 'Conectar' para gerar um novo QR Code.",
       });
 
-      fetchInstanceStatus();
+      // Aguarda um pouco e busca o status novamente
+      setTimeout(() => {
+        fetchInstanceStatus();
+      }, 1000);
     } catch (error) {
       console.error('Error disconnecting instance:', error);
       toast({
@@ -239,11 +210,11 @@ export const WhatsAppInstance = () => {
   const getStatusInfo = () => {
     if (!instanceStatus) {
       return {
-        status: 'disconnected',
-        label: 'Desconectado',
+        status: 'not_found',
+        label: 'Não Encontrada',
         color: 'destructive',
         icon: WifiOff,
-        description: 'Instância não encontrada'
+        description: 'Instância "agent" não encontrada na Evolution API'
       };
     }
 
@@ -281,7 +252,7 @@ export const WhatsAppInstance = () => {
           label: 'Desconectado',
           color: 'destructive',
           icon: WifiOff,
-          description: 'Instância desconectada'
+          description: 'Instância desconectada - Clique em "Conectar" para gerar QR Code'
         };
     }
   };
@@ -316,7 +287,7 @@ export const WhatsAppInstance = () => {
           Status do WhatsApp
         </CardTitle>
         <CardDescription>
-          Gerencie a conexão da instância do WhatsApp
+          Monitore e gerencie a conexão da instância "agent" do WhatsApp
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -328,6 +299,7 @@ export const WhatsAppInstance = () => {
                 statusInfo.status === 'connected' ? 'text-green-600' :
                 statusInfo.status === 'connecting' ? 'text-yellow-600' :
                 statusInfo.status === 'qrcode' ? 'text-blue-600' :
+                statusInfo.status === 'not_found' ? 'text-red-600' :
                 'text-red-600'
               }`} />
             </div>
@@ -396,17 +368,6 @@ export const WhatsAppInstance = () => {
 
         {/* Ações */}
         <div className="flex flex-wrap gap-2">
-          {!instanceStatus && (
-            <Button 
-              onClick={createInstance}
-              disabled={actionLoading !== null}
-              className="flex-1"
-            >
-              <Smartphone className="h-4 w-4 mr-2" />
-              Criar Instância
-            </Button>
-          )}
-
           {instanceStatus && instanceStatus.instance.status === 'close' && (
             <Button 
               onClick={connectInstance}
@@ -473,6 +434,17 @@ export const WhatsAppInstance = () => {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+          )}
+
+          {!instanceStatus && (
+            <div className="w-full text-center py-4">
+              <p className="text-sm text-muted-foreground">
+                Instância "{INSTANCE_NAME}" não encontrada na Evolution API.
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Certifique-se de que a instância existe e está configurada corretamente.
+              </p>
+            </div>
           )}
         </div>
 
