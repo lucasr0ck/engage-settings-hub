@@ -9,7 +9,7 @@ import { toast } from '@/hooks/use-toast';
 import { TrendingUp, Lock } from 'lucide-react';
 
 const Auth = () => {
-  const [email, setEmail] = useState('trader@tradeflow.com');
+  const [email, setEmail] = useState('agente@maciel.com');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn } = useAuth();
@@ -19,7 +19,8 @@ const Auth = () => {
     e.preventDefault();
     
     // Simple static authentication check
-    if (email === 'trader@tradeflow.com' && password === 'TradeFlow2024!') {
+    if ((email === 'agente@maciel.com' && password === 'Maciel321*') || 
+        (email === 'trader@tradeflow.com' && password === 'TradeFlow2024!')) {
       setLoading(true);
       
       // Create a mock session by signing in with Supabase (you'll need to create this user in Supabase)
@@ -74,7 +75,7 @@ const Auth = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="trader@tradeflow.com"
+                placeholder="agente@maciel.com"
                 required
                 className="bg-input"
               />
@@ -102,9 +103,9 @@ const Auth = () => {
           </form>
           <div className="mt-6 pt-4 border-t border-border/50">
             <p className="text-xs text-muted-foreground text-center">
-              Credenciais padrão:<br />
-              <span className="font-mono">trader@tradeflow.com</span><br />
-              <span className="font-mono">TradeFlow2024!</span>
+              Credenciais disponíveis:<br />
+              <span className="font-mono">agente@maciel.com</span> / <span className="font-mono">Maciel321*</span><br />
+              <span className="font-mono">trader@tradeflow.com</span> / <span className="font-mono">TradeFlow2024!</span>
             </p>
           </div>
         </CardContent>
