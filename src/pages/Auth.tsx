@@ -61,9 +61,6 @@ const Auth = () => {
           </div>
           <div>
             <CardTitle className="text-2xl font-bold">TradeFlow</CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Painel Administrativo - WhatsApp Engagement
-            </CardDescription>
           </div>
         </CardHeader>
         <CardContent>
@@ -101,13 +98,7 @@ const Auth = () => {
               {loading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
-          <div className="mt-6 pt-4 border-t border-border/50">
-            <p className="text-xs text-muted-foreground text-center">
-              Credenciais disponíveis:<br />
-              <span className="font-mono">agente@maciel.com</span> / <span className="font-mono">Maciel321*</span><br />
-              <span className="font-mono">trader@tradeflow.com</span> / <span className="font-mono">TradeFlow2024!</span>
-            </p>
-          </div>
+
         </CardContent>
       </Card>
     </div>
