@@ -37,8 +37,8 @@ WITH CHECK (true);
 INSERT INTO public.launch_settings (setting_key, setting_value, description, is_editable) VALUES
 ('launch_date', '2024-01-15', 'Data que o carrinho abre (Formato AAAA-MM-DD)', true),
 ('launch_time', '09:00:00', 'Horário que o carrinho abre (Formato HH:MM:SS)', true),
-('reminder_day_1', '2024-01-10', 'Data do primeiro lembrete (Formato AAAA-MM-DD)', true),
-('reminder_day_2', '2024-01-12', 'Data do segundo lembrete (Formato AAAA-MM-DD)', true),
+('reminder_date_1', '2024-01-10', 'Data do primeiro lembrete (Formato AAAA-MM-DD)', true),
+('reminder_date_2', '2024-01-12', 'Data do segundo lembrete (Formato AAAA-MM-DD)', true),
 ('closing_script_time', '18:00:00', 'Horário do script de fechamento (Formato HH:MM:SS)', true),
 ('is_active', 'true', 'Sistema ativo/inativo', true);
 
