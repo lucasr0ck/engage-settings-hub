@@ -2,111 +2,83 @@
 
 ## Variáveis de Ambiente
 
-Adicione as seguintes variáveis ao seu arquivo `.env`:
+Para que o componente WhatsApp funcione corretamente, você precisa configurar as seguintes variáveis de ambiente:
+
+### 1. Crie um arquivo `.env` na raiz do projeto:
 
 ```env
 # Evolution API Configuration
 VITE_EVOLUTION_API_URL=https://api.evolution.com.br
 VITE_EVOLUTION_API_KEY=FFFFDCD5ACCAB4FDBB997191E2C7D
+
+# Supabase Configuration (já configurado)
+VITE_SUPABASE_URL=https://kaiqqoiymtbwixjyship.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthaXFxb2l5bXRid2l4anlzaGlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MjIyMjgsImV4cCI6MjA2OTk5ODIyOH0.Qb1zrQdAh7-lR0NNrbf2Mt1fpGkZlAlbAWa0PZVpJhY
 ```
 
-## Configuração Completa da Evolution API
+### 2. Configurações da sua Evolution API:
 
-Aqui estão todas as variáveis de ambiente da sua Evolution API para referência:
+Baseado nas suas variáveis de ambiente, a configuração está assim:
 
-```env
-SERVER_URL=https://$(PRIMARY_DOMAIN)
-DEL_INSTANCE=false
-DEL_TEMP_INSTANCES=false
-PROVIDER_ENABLED=false
-PROVIDER_HOST=127.0.0.1
-PROVIDER_PORT=5656
-PROVIDER_PREFIX=evolution-app
-DATABASE_ENABLED=true
-DATABASE_PROVIDER=postgresql
-DATABASE_CONNECTION_URI=postgres://postgres:E9991B73D225B2E436751611D36AC@macielagent_postgres:5432/evolution-app
-DATABASE_CONNECTION_CLIENT_NAME=evolution-app
-CONFIG_SESSION_PHONE_VERSION=2.3000.1023204200
-SQS_ENABLED=false
-SQS_ACCESS_KEY_ID=
-SQS_SECRET_ACCESS_KEY=
-SQS_ACCOUNT_ID=
-SQS_REGION=
-WEBSOCKET_ENABLED=false
-WEBSOCKET_GLOBAL_EVENTS=false
-WA_BUSINESS_TOKEN_WEBHOOK=evolution
-WA_BUSINESS_URL=https://graph.facebook.com
-WA_BUSINESS_VERSION=v20.0
-WA_BUSINESS_LANGUAGE=pt_BR
-WEBHOOK_GLOBAL_URL=
-WEBHOOK_GLOBAL_ENABLED=false
-WEBHOOK_GLOBAL_WEBHOOK_BY_EVENTS=false
-WEBHOOK_EVENTS_APPLICATION_STARTUP=true
-WEBHOOK_EVENTS_QRCODE_UPDATED=true
-WEBHOOK_EVENTS_MESSAGES_SET=false
-WEBHOOK_EVENTS_MESSAGES_UPSERT=false
-WEBHOOK_EVENTS_MESSAGES_EDITED=false
-WEBHOOK_EVENTS_MESSAGES_UPDATE=false
-WEBHOOK_EVENTS_MESSAGES_DELETE=false
-WEBHOOK_EVENTS_SEND_MESSAGE=false
-WEBHOOK_EVENTS_CONTACTS_SET=false
-WEBHOOK_EVENTS_CONTACTS_UPSERT=false
-WEBHOOK_EVENTS_CONTACTS_UPDATE=false
-WEBHOOK_EVENTS_PRESENCE_UPDATE=false
-WEBHOOK_EVENTS_CHATS_SET=false
-WEBHOOK_EVENTS_CHATS_UPSERT=false
-WEBHOOK_EVENTS_CHATS_UPDATE=false
-WEBHOOK_EVENTS_CHATS_DELETE=false
-WEBHOOK_EVENTS_GROUPS_UPSERT=false
-WEBHOOK_EVENTS_GROUPS_UPDATE=false
-WEBHOOK_EVENTS_GROUP_PARTICIPANTS_UPDATE=false
-WEBHOOK_EVENTS_CONNECTION_UPDATE=true
-WEBHOOK_EVENTS_LABELS_EDIT=false
-WEBHOOK_EVENTS_LABELS_ASSOCIATION=false
-WEBHOOK_EVENTS_CALL=false
-WEBHOOK_EVENTS_TYPEBOT_START=false
-WEBHOOK_EVENTS_TYPEBOT_CHANGE_STATUS=false
-WEBHOOK_EVENTS_ERRORS=false
-WEBHOOK_EVENTS_ERRORS_WEBHOOK=
-CONFIG_SESSION_PHONE_CLIENT=chrome
-CONFIG_SESSION_PHONE_NAME=Chrome
-QRCODE_LIMIT=2
-QRCODE_COLOR=#000000
-OPENAI_ENABLED=true
-DIFY_ENABLED=true
-TYPEBOT_ENABLED=false
-TYPEBOT_API_VERSION=latest
-CHATWOOT_ENABLED=false
-CHATWOOT_MESSAGE_READ=true
-CHATWOOT_IMPORT_DATABASE_CONNECTION_URI=postgresql://[USUARIO]:[SENHA]@[HOST]:5432/[CHATWOPOT_DATABASE]?sslmode=disable
-CHATWOOT_IMPORT_PLACEHOLDER_MEDIA_MESSAGE=true
-CACHE_REDIS_ENABLED=true
-CACHE_REDIS_URI=redis://default:67EF6664C4A8BD313E39868753CDE@macielagent_redis:6379/5
-CACHE_REDIS_PREFIX_KEY=evolution-app
-CACHE_REDIS_SAVE_INSTANCES=false
-CACHE_LOCAL_ENABLED=false
-S3_ENABLED=false
-S3_ACCESS_KEY=
-S3_SECRET_KEY=
-S3_BUCKET=evolution
-S3_PORT=443
-S3_ENDPOINT=
-S3_USE_SSL=true
-AUTHENTICATION_API_KEY=FFFFDCD5ACCAB4FDBB997191E2C7D
-AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES=true
-LANGUAGE=pt-BR
-```
-
-## Instância Configurada
-
-A aplicação está configurada para usar a instância com o nome: **"agent"**
+- **URL da API**: `https://$(PRIMARY_DOMAIN)`
+- **API Key**: `FFFFDCD5ACCAB4FDBB997191E2C7D`
+- **Nome da Instância**: `agent`
+- **Webhooks habilitados**: `connection.update` e `qrcode.update`
 
 ## Funcionalidades Implementadas
 
-- ✅ Status da conexão em tempo real
-- ✅ Criação de instância
-- ✅ Conexão/Desconexão
-- ✅ Exibição de QR Code
-- ✅ Deletar instância
-- ✅ Atualização automática do status
-- ✅ Interface responsiva e intuitiva 
+### ✅ Status da Conexão
+- Exibe o status atual da instância (conectado, desconectado, QR Code disponível)
+- Atualização automática a cada 5 segundos
+- Indicadores visuais com cores e ícones
+
+### ✅ Geração de QR Code
+- Botão para gerar QR Code quando necessário
+- Popup com QR Code em tamanho adequado
+- Instruções claras para o usuário
+
+### ✅ Gerenciamento de Instância
+- **Criar**: Cria nova instância se não existir
+- **Conectar**: Inicia o processo de conexão
+- **Desconectar**: Desconecta a instância atual
+- **Deletar**: Remove a instância completamente
+
+### ✅ Interface Intuitiva
+- Design responsivo e moderno
+- Estados de loading para todas as ações
+- Feedback visual com toasts
+- Confirmações para ações destrutivas
+
+## Como Usar
+
+1. **Configure as variáveis de ambiente** no arquivo `.env`
+2. **Reinicie a aplicação** para carregar as configurações
+3. **Acesse a seção WhatsApp** na aplicação
+4. **Siga os passos**:
+   - Se não há instância: Clique em "Criar Instância"
+   - Para conectar: Clique em "Conectar" e escaneie o QR Code
+   - Para desconectar: Clique em "Desconectar"
+   - Para deletar: Clique em "Deletar Instância"
+
+## Endpoints Utilizados
+
+- `GET /instance/fetchInstances` - Buscar status das instâncias
+- `POST /instance/create` - Criar nova instância
+- `GET /instance/connect/{instanceName}` - Conectar instância
+- `DELETE /instance/logout/{instanceName}` - Desconectar instância
+- `DELETE /instance/delete/{instanceName}` - Deletar instância
+
+## Tratamento de Erros
+
+- Conexão com API indisponível
+- Instância não encontrada
+- Falha na criação/conexão/desconexão
+- Datas duplicadas
+- Timeout de operações
+
+## Segurança
+
+- API Key configurada via variáveis de ambiente
+- Validação de respostas da API
+- Confirmações para ações destrutivas
+- Tratamento seguro de erros 

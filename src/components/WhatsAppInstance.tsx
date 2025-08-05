@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { 
@@ -31,60 +33,30 @@ interface InstanceStatus {
     number?: string;
     token?: string;
     integration?: string;
-    integrationToken?: string;
-    integrationKey?: string;
-    integrationUrl?: string;
-    integrationUrlByEvents?: boolean;
-    integrationEvents?: string[];
-    integrationTokenByEvents?: boolean;
-    integrationTokenEvents?: string[];
-    integrationTokenWebhook?: string;
-    integrationTokenWebhookByEvents?: boolean;
-    integrationTokenWebhookEvents?: string[];
-    integrationTokenWebhookMethod?: string;
-    integrationTokenWebhookHeaders?: string;
-    integrationTokenWebhookBody?: string;
-    integrationTokenWebhookRetries?: number;
-    integrationTokenWebhookRetryDelay?: number;
-    integrationTokenWebhookRetryMax?: number;
-    integrationTokenWebhookRetryStatus?: string;
-    integrationTokenWebhookRetryStatusCodes?: string;
-    integrationTokenWebhookRetryStatusCodesArray?: string[];
-    integrationTokenWebhookRetryStatusCodesString?: string;
-    integrationTokenWebhookRetryStatusCodesStringArray?: string[];
-    integrationTokenWebhookRetryStatusCodesStringArrayString?: string;
-    integrationTokenWebhookRetryStatusCodesStringArrayStringArray?: string[];
-    integrationTokenWebhookRetryStatusCodesStringArrayStringArrayString?: string;
-    integrationTokenWebhookRetryStatusCodesStringArrayStringArrayStringArray?: string[];
-    integrationTokenWebhookRetryStatusCodesStringArrayStringArrayStringArrayString?: string;
-    integrationTokenWebhookRetryStatusCodesStringArrayStringArrayStringArrayStringArray?: string[];
-    integrationTokenWebhookRetryStatusCodesStringArrayStringArrayStringArrayStringArrayString?: string;
-    integrationTokenWebhookRetryStatusCodesStringArrayStringArrayStringArrayStringArrayStringArray?: string[];
-    integrationTokenWebhookRetryStatusCodesStringArrayStringArrayStringArrayStringArrayStringArrayString?: string;
-    integrationTokenWebhookRetryStatusCodesStringArrayStringArrayStringArrayStringArrayStringArrayStringArray?: string[];
-    integrationTokenWebhookRetryStatusCodesStringArrayStringArrayStringArrayStringArrayStringArrayStringArrayString?: string;
-    integrationTokenWebhookRetryStatusCodesStringArrayStringArrayStringArrayStringArrayStringArrayStringArrayStringArray?: string[];
-    integrationTokenWebhookRetryStatusCodesStringArrayStringArrayStringArrayStringArrayStringArrayStringArrayStringArrayString?: string;
-    integrationTokenWebhookRetryStatusCodesStringArrayStringArrayStringArrayStringArrayStringArrayStringArrayStringArrayStringArray?: string[];
-    integrationTokenWebhookRetryStatusCodesStringArrayStringArrayStringArrayStringArrayStringArrayStringArrayStringArrayStringString?: string;
-    integrationTokenWebhookRetryStatusCodesStringArrayStringArrayStringArrayStringArrayStringArrayStringArrayStringArrayStringArray?: string[];
-    integrationTokenWebhookRetryStatusCodesStringArrayStringArrayStringArrayStringArrayStringArrayStringArrayStringArrayStringString?: string;
-    integrationTokenWebhookRetryStatusCodesStringArrayStringArrayStringArrayStringArrayStringArrayStringArrayStringArrayStringArrayString?: string[];
-    integrationTokenWebhookRetryStatusCodesStringArrayStringArrayStringArrayStringArrayStringArrayStringArrayStringArrayStringString?: string;
-    integrationTokenWebhookRetryStatusCodesStringArrayStringArrayStringArrayStringArrayStringArrayStringArrayStringArrayStringAgent?: string;
+  };
+  connection?: {
+    state: string;
+    status: string;
   };
 }
 
-const EVOLUTION_API_URL = import.meta.env.VITE_EVOLUTION_API_URL || 'https://api.evolution.com.br';
-const API_KEY = import.meta.env.VITE_EVOLUTION_API_KEY || 'FFFFDCD5ACCAB4FDBB997191E2C7D';
-const INSTANCE_NAME = 'agent';
+interface InstanceInfo {
+  instanceName: string;
+  status: string;
+  qrcode?: string;
+  phone?: string;
+  number?: string;
+}
 
 export const WhatsAppInstance = () => {
   const [instanceStatus, setInstanceStatus] = useState<InstanceStatus | null>(null);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const INSTANCE_NAME = 'agent';
+  const API_BASE_URL = import.meta.env.VITE_EVOLUTION_API_URL || 'https://api.evolution.com.br';
+  const API_KEY = import.meta.env.VITE_EVOLUTION_API_KEY || 'FFFFDCD5ACCAB4FDBB997191E2C7D';
 
   useEffect(() => {
     fetchInstanceStatus();
@@ -95,111 +67,123 @@ export const WhatsAppInstance = () => {
 
   const fetchInstanceStatus = async () => {
     try {
-      const response = await fetch(`${EVOLUTION_API_URL}/instance/fetchInstances`, {
+      const response = await fetch(`${API_BASE_URL}/instance/fetchInstances`, {
+        method: 'GET',
         headers: {
-          'apikey': API_KEY,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'apikey': API_KEY
         }
       });
 
-      if (!response.ok) throw new Error('Falha ao buscar status da instância');
+      if (!response.ok) {
+        throw new Error('Falha ao buscar status da instância');
+      }
 
       const data = await response.json();
-      const agentInstance = data.find((instance: any) => instance.instance.instanceName === INSTANCE_NAME);
+      const instance = data.find((inst: any) => inst.instance.instanceName === INSTANCE_NAME);
       
-      if (agentInstance) {
-        setInstanceStatus(agentInstance);
+      if (instance) {
+        setInstanceStatus(instance);
+      } else {
+        // Se a instância não existe, criar
+        await createInstance();
       }
     } catch (error) {
-      console.error('Erro ao buscar status da instância:', error);
+      console.error('Error fetching instance status:', error);
+      toast({
+        title: "Erro ao conectar",
+        description: "Não foi possível conectar com a Evolution API.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const createInstance = async () => {
-    setActionLoading(true);
     try {
-      const response = await fetch(`${EVOLUTION_API_URL}/instance/create`, {
+      const response = await fetch(`${API_BASE_URL}/instance/create`, {
         method: 'POST',
         headers: {
-          'apikey': API_KEY,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'apikey': API_KEY
         },
         body: JSON.stringify({
           instanceName: INSTANCE_NAME,
-          token: API_KEY,
-          qrcode: true,
-          number: '',
           webhook: '',
           webhookByEvents: false,
-          events: []
+          events: ['connection.update', 'qrcode.update'],
+          apikey: API_KEY
         })
       });
 
-      if (!response.ok) throw new Error('Falha ao criar instância');
+      if (!response.ok) {
+        throw new Error('Falha ao criar instância');
+      }
 
       toast({
         title: "Instância criada!",
-        description: "A instância do WhatsApp foi criada com sucesso.",
+        description: "Nova instância do WhatsApp foi criada com sucesso.",
       });
 
       fetchInstanceStatus();
     } catch (error) {
-      console.error('Erro ao criar instância:', error);
+      console.error('Error creating instance:', error);
       toast({
         title: "Erro ao criar instância",
         description: "Não foi possível criar a instância do WhatsApp.",
         variant: "destructive",
       });
-    } finally {
-      setActionLoading(false);
     }
   };
 
   const connectInstance = async () => {
-    setActionLoading(true);
+    setActionLoading('connect');
     try {
-      const response = await fetch(`${EVOLUTION_API_URL}/instance/connect/${INSTANCE_NAME}`, {
+      const response = await fetch(`${API_BASE_URL}/instance/connect/${INSTANCE_NAME}`, {
         method: 'GET',
         headers: {
-          'apikey': API_KEY,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'apikey': API_KEY
         }
       });
 
-      if (!response.ok) throw new Error('Falha ao conectar instância');
+      if (!response.ok) {
+        throw new Error('Falha ao conectar instância');
+      }
 
       toast({
         title: "Conectando...",
-        description: "A instância está sendo conectada. Aguarde o QR Code aparecer.",
+        description: "A instância está sendo conectada. Aguarde o QR Code.",
       });
 
       fetchInstanceStatus();
     } catch (error) {
-      console.error('Erro ao conectar instância:', error);
+      console.error('Error connecting instance:', error);
       toast({
         title: "Erro ao conectar",
         description: "Não foi possível conectar a instância.",
         variant: "destructive",
       });
     } finally {
-      setActionLoading(false);
+      setActionLoading(null);
     }
   };
 
   const disconnectInstance = async () => {
-    setActionLoading(true);
+    setActionLoading('disconnect');
     try {
-      const response = await fetch(`${EVOLUTION_API_URL}/instance/logout/${INSTANCE_NAME}`, {
+      const response = await fetch(`${API_BASE_URL}/instance/logout/${INSTANCE_NAME}`, {
         method: 'DELETE',
         headers: {
-          'apikey': API_KEY,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'apikey': API_KEY
         }
       });
 
-      if (!response.ok) throw new Error('Falha ao desconectar instância');
+      if (!response.ok) {
+        throw new Error('Falha ao desconectar instância');
+      }
 
       toast({
         title: "Desconectado!",
@@ -208,29 +192,31 @@ export const WhatsAppInstance = () => {
 
       fetchInstanceStatus();
     } catch (error) {
-      console.error('Erro ao desconectar instância:', error);
+      console.error('Error disconnecting instance:', error);
       toast({
         title: "Erro ao desconectar",
         description: "Não foi possível desconectar a instância.",
         variant: "destructive",
       });
     } finally {
-      setActionLoading(false);
+      setActionLoading(null);
     }
   };
 
   const deleteInstance = async () => {
-    setActionLoading(true);
+    setActionLoading('delete');
     try {
-      const response = await fetch(`${EVOLUTION_API_URL}/instance/delete/${INSTANCE_NAME}`, {
+      const response = await fetch(`${API_BASE_URL}/instance/delete/${INSTANCE_NAME}`, {
         method: 'DELETE',
         headers: {
-          'apikey': API_KEY,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'apikey': API_KEY
         }
       });
 
-      if (!response.ok) throw new Error('Falha ao deletar instância');
+      if (!response.ok) {
+        throw new Error('Falha ao deletar instância');
+      }
 
       toast({
         title: "Instância deletada!",
@@ -238,38 +224,70 @@ export const WhatsAppInstance = () => {
       });
 
       setInstanceStatus(null);
-      setDeleteDialogOpen(false);
     } catch (error) {
-      console.error('Erro ao deletar instância:', error);
+      console.error('Error deleting instance:', error);
       toast({
         title: "Erro ao deletar",
         description: "Não foi possível deletar a instância.",
         variant: "destructive",
       });
     } finally {
-      setActionLoading(false);
+      setActionLoading(null);
     }
   };
 
   const getStatusInfo = () => {
-    if (!instanceStatus) return { status: 'not_found', label: 'Não encontrada', color: 'secondary', icon: XCircle };
-    
+    if (!instanceStatus) {
+      return {
+        status: 'disconnected',
+        label: 'Desconectado',
+        color: 'destructive',
+        icon: WifiOff,
+        description: 'Instância não encontrada'
+      };
+    }
+
     const status = instanceStatus.instance.status;
+    
     switch (status) {
       case 'open':
-        return { status, label: 'Conectado', color: 'default', icon: CheckCircle };
+        return {
+          status: 'connected',
+          label: 'Conectado',
+          color: 'default',
+          icon: CheckCircle,
+          description: `WhatsApp conectado${instanceStatus.instance.phone ? ` - ${instanceStatus.instance.phone}` : ''}`
+        };
       case 'connecting':
-        return { status, label: 'Conectando...', color: 'secondary', icon: Loader2 };
+        return {
+          status: 'connecting',
+          label: 'Conectando...',
+          color: 'secondary',
+          icon: Loader2,
+          description: 'Aguardando conexão'
+        };
       case 'qrcode':
-        return { status, label: 'QR Code Disponível', color: 'outline', icon: QrCode };
+        return {
+          status: 'qrcode',
+          label: 'QR Code Disponível',
+          color: 'default',
+          icon: QrCode,
+          description: 'Escaneie o QR Code para conectar'
+        };
       case 'close':
-        return { status, label: 'Desconectado', color: 'destructive', icon: XCircle };
       default:
-        return { status, label: 'Desconhecido', color: 'secondary', icon: AlertCircle };
+        return {
+          status: 'disconnected',
+          label: 'Desconectado',
+          color: 'destructive',
+          icon: WifiOff,
+          description: 'Instância desconectada'
+        };
     }
   };
 
   const statusInfo = getStatusInfo();
+  const StatusIcon = statusInfo.icon;
 
   if (loading) {
     return (
@@ -281,7 +299,10 @@ export const WhatsAppInstance = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8">Carregando status...</div>
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span className="ml-2">Carregando status...</span>
+          </div>
         </CardContent>
       </Card>
     );
@@ -298,137 +319,176 @@ export const WhatsAppInstance = () => {
           Gerencie a conexão da instância do WhatsApp
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {!instanceStatus ? (
-            <div className="text-center py-8 space-y-4">
-              <div className="flex items-center justify-center">
-                <Smartphone className="h-12 w-12 text-muted-foreground" />
-              </div>
-              <div>
-                <p className="text-muted-foreground mb-4">
-                  Nenhuma instância encontrada. Crie uma nova instância para começar.
-                </p>
-                <Button onClick={createInstance} disabled={actionLoading}>
-                  {actionLoading ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                  )}
-                  Criar Instância
-                </Button>
-              </div>
+      <CardContent className="space-y-6">
+        {/* Status da Instância */}
+        <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-full bg-background">
+              <StatusIcon className={`h-5 w-5 ${
+                statusInfo.status === 'connected' ? 'text-green-600' :
+                statusInfo.status === 'connecting' ? 'text-yellow-600' :
+                statusInfo.status === 'qrcode' ? 'text-blue-600' :
+                'text-red-600'
+              }`} />
             </div>
-          ) : (
-            <>
-              {/* Status Card */}
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center gap-3">
-                  <statusInfo.icon className={`h-5 w-5 ${
-                    statusInfo.status === 'open' ? 'text-green-500' :
-                    statusInfo.status === 'connecting' ? 'text-yellow-500' :
-                    statusInfo.status === 'qrcode' ? 'text-blue-500' :
-                    'text-red-500'
-                  }`} />
-                  <div>
-                    <p className="font-medium">Instância: {INSTANCE_NAME}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {instanceStatus.instance.phone ? `Telefone: ${instanceStatus.instance.phone}` : 'Telefone não conectado'}
-                    </p>
-                  </div>
-                </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold">Instância: {INSTANCE_NAME}</h3>
                 <Badge variant={statusInfo.color as any}>
                   {statusInfo.label}
                 </Badge>
               </div>
+              <p className="text-sm text-muted-foreground">{statusInfo.description}</p>
+            </div>
+          </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchInstanceStatus}
+            disabled={actionLoading !== null}
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
 
-              {/* QR Code Display */}
-              {instanceStatus.instance.status === 'qrcode' && instanceStatus.instance.qrcode && (
-                <div className="p-4 border rounded-lg bg-muted/50">
-                  <div className="flex items-center gap-2 mb-3">
-                    <QrCode className="h-4 w-4" />
-                    <span className="font-medium">QR Code para Conexão</span>
-                  </div>
-                  <div className="flex justify-center">
+        {/* QR Code */}
+        {instanceStatus?.instance.qrcode && (
+          <div className="p-4 border rounded-lg bg-muted/30">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-medium flex items-center gap-2">
+                <QrCode className="h-4 w-4" />
+                QR Code para Conexão
+              </h4>
+              <Dialog open={qrDialogOpen} onOpenChange={setQrDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    Ver QR Code
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-sm">
+                  <DialogHeader>
+                    <DialogTitle>QR Code do WhatsApp</DialogTitle>
+                    <DialogDescription>
+                      Escaneie este QR Code com seu WhatsApp para conectar a instância
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="flex justify-center p-4">
                     <img 
                       src={instanceStatus.instance.qrcode} 
-                      alt="QR Code WhatsApp" 
-                      className="max-w-48 h-auto border rounded"
+                      alt="QR Code WhatsApp"
+                      className="max-w-48 h-auto"
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground text-center mt-2">
-                    Escaneie este QR Code com seu WhatsApp para conectar
-                  </p>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex flex-wrap gap-2">
-                {instanceStatus.instance.status === 'close' && (
-                  <Button onClick={connectInstance} disabled={actionLoading}>
-                    {actionLoading ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Wifi className="h-4 w-4 mr-2" />
-                    )}
-                    Conectar
-                  </Button>
-                )}
-
-                {instanceStatus.instance.status === 'open' && (
-                  <Button variant="outline" onClick={disconnectInstance} disabled={actionLoading}>
-                    {actionLoading ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <WifiOff className="h-4 w-4 mr-2" />
-                    )}
-                    Desconectar
-                  </Button>
-                )}
-
-                <Button variant="outline" onClick={fetchInstanceStatus} disabled={actionLoading}>
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Atualizar
-                </Button>
-
-                <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="destructive">
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Deletar Instância
+                  <DialogFooter>
+                    <Button onClick={() => setQrDialogOpen(false)}>
+                      Fechar
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Confirmar exclusão</DialogTitle>
-                      <DialogDescription>
-                        Tem certeza que deseja deletar a instância "{INSTANCE_NAME}"? 
-                        Esta ação não pode ser desfeita e você precisará criar uma nova instância.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-                        Cancelar
-                      </Button>
-                      <Button 
-                        variant="destructive" 
-                        onClick={deleteInstance}
-                        disabled={actionLoading}
-                      >
-                        {actionLoading ? (
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4 mr-2" />
-                        )}
-                        Deletar
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Abra o WhatsApp no seu celular e escaneie o QR Code para conectar
+            </p>
+          </div>
+        )}
+
+        {/* Ações */}
+        <div className="flex flex-wrap gap-2">
+          {!instanceStatus && (
+            <Button 
+              onClick={createInstance}
+              disabled={actionLoading !== null}
+              className="flex-1"
+            >
+              <Smartphone className="h-4 w-4 mr-2" />
+              Criar Instância
+            </Button>
+          )}
+
+          {instanceStatus && instanceStatus.instance.status === 'close' && (
+            <Button 
+              onClick={connectInstance}
+              disabled={actionLoading !== null}
+              className="flex-1"
+            >
+              {actionLoading === 'connect' ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Wifi className="h-4 w-4 mr-2" />
+              )}
+              Conectar
+            </Button>
+          )}
+
+          {instanceStatus && instanceStatus.instance.status === 'open' && (
+            <Button 
+              variant="outline"
+              onClick={disconnectInstance}
+              disabled={actionLoading !== null}
+              className="flex-1"
+            >
+              {actionLoading === 'disconnect' ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <WifiOff className="h-4 w-4 mr-2" />
+              )}
+              Desconectar
+            </Button>
+          )}
+
+          {instanceStatus && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="destructive"
+                  disabled={actionLoading !== null}
+                  className="flex-1"
+                >
+                  {actionLoading === 'delete' ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4 mr-2" />
+                  )}
+                  Deletar Instância
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza que deseja deletar a instância "{INSTANCE_NAME}"? 
+                    Esta ação não pode ser desfeita e você perderá a conexão do WhatsApp.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={deleteInstance}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Deletar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
         </div>
+
+        {/* Informações Adicionais */}
+        {instanceStatus && (
+          <div className="text-xs text-muted-foreground space-y-1">
+            <p>• Status atual: {instanceStatus.instance.status}</p>
+            {instanceStatus.instance.phone && (
+              <p>• Telefone: {instanceStatus.instance.phone}</p>
+            )}
+            {instanceStatus.instance.number && (
+              <p>• Número: {instanceStatus.instance.number}</p>
+            )}
+            <p>• Última atualização: {new Date().toLocaleTimeString('pt-BR')}</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
