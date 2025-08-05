@@ -21,37 +21,30 @@ import {
 } from 'lucide-react';
 
 interface InstanceStatus {
-  instance: {
-    instanceName: string;
-    status: 'open' | 'connecting' | 'close' | 'qrcode';
-    qrcode?: string;
-    phone?: string;
-    webhook?: string;
-    webhookByEvents?: boolean;
-    events?: string[];
-    apikey?: string;
-    number?: string;
-    token?: string;
-    integration?: string;
-  };
-  connection?: {
-    state: string;
-    status: string;
+  id: string;
+  name: string;
+  connectionStatus: 'open' | 'connecting' | 'close' | 'qrcode';
+  ownerJid?: string;
+  profileName?: string;
+  profilePicUrl?: string;
+  integration?: string;
+  number?: string;
+  token?: string;
+  clientName?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  _count?: {
+    Message: number;
+    Contact: number;
+    Chat: number;
   };
 }
 
-interface InstanceInfo {
-  instanceName: string;
-  status: string;
-  qrcode?: string;
-  phone?: string;
-  number?: string;
-}
+
 
 export const WhatsAppInstance = () => {
   const [instanceStatus, setInstanceStatus] = useState<InstanceStatus | null>(null);
   const [loading, setLoading] = useState(true);
-  const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const INSTANCE_NAME = 'agent';
@@ -67,6 +60,10 @@ export const WhatsAppInstance = () => {
 
   const fetchInstanceStatus = async () => {
     try {
+      console.log('🔍 Buscando instâncias...');
+      console.log('📡 URL:', `${API_BASE_URL}/instance/fetchInstances`);
+      console.log('🔑 API Key:', API_KEY);
+      
       const response = await fetch(`${API_BASE_URL}/instance/fetchInstances`, {
         method: 'GET',
         headers: {
@@ -75,24 +72,34 @@ export const WhatsAppInstance = () => {
         }
       });
 
+      console.log('📊 Status da resposta:', response.status);
+      console.log('📋 Headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        throw new Error('Falha ao buscar status da instância');
+        const errorText = await response.text();
+        console.error('❌ Erro na resposta:', errorText);
+        throw new Error(`Falha ao buscar status da instância: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
-      const instance = data.find((inst: any) => inst.instance.instanceName === INSTANCE_NAME);
+      console.log('📦 Dados recebidos:', data);
+      
+      const instance = data.find((inst: any) => inst.name === INSTANCE_NAME);
+      console.log('🎯 Instância encontrada:', instance);
       
       if (instance) {
         setInstanceStatus(instance);
+        console.log('✅ Instância definida:', instance);
       } else {
         // Se a instância não existe, apenas mostrar como não encontrada
         setInstanceStatus(null);
+        console.log('❌ Instância não encontrada');
       }
     } catch (error) {
-      console.error('Error fetching instance status:', error);
+      console.error('💥 Error fetching instance status:', error);
       toast({
         title: "Erro ao conectar",
-        description: "Não foi possível conectar com a Evolution API.",
+        description: `Não foi possível conectar com a Evolution API: ${error.message}`,
         variant: "destructive",
       });
     } finally {
@@ -218,7 +225,7 @@ export const WhatsAppInstance = () => {
       };
     }
 
-    const status = instanceStatus.instance.status;
+    const status = instanceStatus.connectionStatus;
     
     switch (status) {
       case 'open':
@@ -227,7 +234,7 @@ export const WhatsAppInstance = () => {
           label: 'Conectado',
           color: 'default',
           icon: CheckCircle,
-          description: `WhatsApp conectado${instanceStatus.instance.phone ? ` - ${instanceStatus.instance.phone}` : ''}`
+          description: `WhatsApp conectado${instanceStatus.profileName ? ` - ${instanceStatus.profileName}` : ''}`
         };
       case 'connecting':
         return {
@@ -324,51 +331,11 @@ export const WhatsAppInstance = () => {
           </Button>
         </div>
 
-        {/* QR Code */}
-        {instanceStatus?.instance.qrcode && (
-          <div className="p-4 border rounded-lg bg-muted/30">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="font-medium flex items-center gap-2">
-                <QrCode className="h-4 w-4" />
-                QR Code para Conexão
-              </h4>
-              <Dialog open={qrDialogOpen} onOpenChange={setQrDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    Ver QR Code
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-sm">
-                  <DialogHeader>
-                    <DialogTitle>QR Code do WhatsApp</DialogTitle>
-                    <DialogDescription>
-                      Escaneie este QR Code com seu WhatsApp para conectar a instância
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="flex justify-center p-4">
-                    <img 
-                      src={instanceStatus.instance.qrcode} 
-                      alt="QR Code WhatsApp"
-                      className="max-w-48 h-auto"
-                    />
-                  </div>
-                  <DialogFooter>
-                    <Button onClick={() => setQrDialogOpen(false)}>
-                      Fechar
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Abra o WhatsApp no seu celular e escaneie o QR Code para conectar
-            </p>
-          </div>
-        )}
+
 
         {/* Ações */}
         <div className="flex flex-wrap gap-2">
-          {instanceStatus && instanceStatus.instance.status === 'close' && (
+          {instanceStatus && instanceStatus.connectionStatus === 'close' && (
             <Button 
               onClick={connectInstance}
               disabled={actionLoading !== null}
@@ -383,7 +350,7 @@ export const WhatsAppInstance = () => {
             </Button>
           )}
 
-          {instanceStatus && instanceStatus.instance.status === 'open' && (
+          {instanceStatus && instanceStatus.connectionStatus === 'open' && (
             <Button 
               variant="outline"
               onClick={disconnectInstance}
@@ -451,12 +418,15 @@ export const WhatsAppInstance = () => {
         {/* Informações Adicionais */}
         {instanceStatus && (
           <div className="text-xs text-muted-foreground space-y-1">
-            <p>• Status atual: {instanceStatus.instance.status}</p>
-            {instanceStatus.instance.phone && (
-              <p>• Telefone: {instanceStatus.instance.phone}</p>
+            <p>• Status atual: {instanceStatus.connectionStatus}</p>
+            {instanceStatus.profileName && (
+              <p>• Nome: {instanceStatus.profileName}</p>
             )}
-            {instanceStatus.instance.number && (
-              <p>• Número: {instanceStatus.instance.number}</p>
+            {instanceStatus.ownerJid && (
+              <p>• WhatsApp: {instanceStatus.ownerJid}</p>
+            )}
+            {instanceStatus._count && (
+              <p>• Mensagens: {instanceStatus._count.Message.toLocaleString()}</p>
             )}
             <p>• Última atualização: {new Date().toLocaleTimeString('pt-BR')}</p>
           </div>
