@@ -14,7 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      daily_call_links: {
+        Row: {
+          call_date: string
+          id: number
+          meet_link: string
+        }
+        Insert: {
+          call_date: string
+          id?: number
+          meet_link: string
+        }
+        Update: {
+          call_date?: string
+          id?: number
+          meet_link?: string
+        }
+        Relationships: []
+      }
+      launch_settings: {
+        Row: {
+          description: string
+          id: number
+          is_editable: boolean
+          setting_key: string
+          setting_value: string | null
+        }
+        Insert: {
+          description: string
+          id?: number
+          is_editable?: boolean
+          setting_key: string
+          setting_value?: string | null
+        }
+        Update: {
+          description?: string
+          id?: number
+          is_editable?: boolean
+          setting_key?: string
+          setting_value?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
