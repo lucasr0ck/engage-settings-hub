@@ -398,7 +398,7 @@ export const WhatsAppInstance = () => {
                     <p className="text-sm font-medium">Como escanear:</p>
                     <ol className="text-xs text-muted-foreground space-y-1 text-left">
                       <li>1. Abra o WhatsApp no seu celular</li>
-                      <li>2. Vá em Configurações > Aparelhos conectados</li>
+                                              <li>2. Vá em Configurações {'>'} Aparelhos conectados</li>
                       <li>3. Toque em "Conectar um aparelho"</li>
                       <li>4. Aponte a câmera para o QR Code</li>
                     </ol>
