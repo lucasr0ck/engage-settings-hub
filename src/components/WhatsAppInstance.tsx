@@ -48,7 +48,7 @@ export const WhatsAppInstance = () => {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const INSTANCE_NAME = 'agent';
-  const API_BASE_URL = import.meta.env.VITE_EVOLUTION_API_URL || 'https://api.evolution.com.br';
+  const API_BASE_URL = import.meta.env.VITE_EVOLUTION_API_URL || 'https://evolution.g116lp.easypanel.host';
   const API_KEY = import.meta.env.VITE_EVOLUTION_API_KEY || 'FFFFDCD5ACCAB4FDBB997191E2C7D';
 
   useEffect(() => {

@@ -15,7 +15,7 @@
     ],
     "environment": [
       "NODE_ENV=production",
-      "VITE_EVOLUTION_API_URL=https://api.evolution.com.br",
+      "VITE_EVOLUTION_API_URL=https://evolution.g116lp.easypanel.host",
       "VITE_EVOLUTION_API_KEY=FFFFDCD5ACCAB4FDBB997191E2C7D",
       "VITE_SUPABASE_URL=https://kaiqqoiymtbwixjyship.supabase.co",
       "VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthaXFxb2l5bXRid2l4anlzaGlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ0MjIyMjgsImV4cCI6MjA2OTk5ODIyOH0.Qb1zrQdAh7-lR0NNrbf2Mt1fpGkZlAlbAWa0PZVpJhY"
