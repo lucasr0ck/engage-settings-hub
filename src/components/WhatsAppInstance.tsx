@@ -506,17 +506,63 @@ export const WhatsAppInstance = () => {
             </div>
           )}
 
-          {!instanceStatus && (
-            <div className="text-center py-4">
-              <div className="mx-auto w-12 h-12 bg-muted/50 rounded-full flex items-center justify-center mb-3">
-                <WifiOff className="h-6 w-6 text-muted-foreground" />
+          {instanceStatus && instanceStatus.connectionStatus === 'connecting' && (
+            <div className="space-y-2">
+              <div className="text-center py-4">
+                <div className="mx-auto w-12 h-12 bg-yellow-500/20 rounded-full flex items-center justify-center mb-3">
+                  <Loader2 className="h-6 w-6 text-yellow-600 animate-spin" />
+                </div>
+                <p className="text-sm text-muted-foreground mb-1">
+                  Conectando instância...
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Aguarde enquanto a conexão é estabelecida
+                </p>
               </div>
-              <p className="text-sm text-muted-foreground mb-1">
-                Instância "{INSTANCE_NAME}" não encontrada
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Verifique se a instância existe na Evolution API
-              </p>
+              
+              <Button 
+                onClick={generateQRCode}
+                disabled={actionLoading !== null}
+                variant="outline"
+                className="w-full"
+              >
+                {actionLoading === 'qrcode' ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <QrCode className="h-4 w-4 mr-2" />
+                )}
+                Forçar QR Code
+              </Button>
+            </div>
+          )}
+
+          {!instanceStatus && (
+            <div className="space-y-2">
+              <div className="text-center py-4">
+                <div className="mx-auto w-12 h-12 bg-muted/50 rounded-full flex items-center justify-center mb-3">
+                  <WifiOff className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <p className="text-sm text-muted-foreground mb-1">
+                  Instância "{INSTANCE_NAME}" não encontrada
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Verifique se a instância existe na Evolution API
+                </p>
+              </div>
+              
+              <Button 
+                onClick={generateQRCode}
+                disabled={actionLoading !== null}
+                variant="outline"
+                className="w-full"
+              >
+                {actionLoading === 'qrcode' ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <QrCode className="h-4 w-4 mr-2" />
+                )}
+                Tentar Conectar
+              </Button>
             </div>
           )}
         </div>
