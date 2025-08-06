@@ -124,7 +124,7 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 ### 📱 WhatsApp Integration
 - Status da instância em tempo real
 - QR Code para conexão
-- Gerenciamento completo da instância "agent"
+- Gerenciamento completo da instância "agente"
 
 ## 🚀 Comandos de Deploy
 

@@ -39,7 +39,7 @@ export const DailyCallLinks = () => {
       const { data, error } = await supabase
         .from('daily_call_links')
         .select('*')
-        .order('call_date', { ascending: false });
+        .order('call_date', { ascending: true });
 
       if (error) throw error;
       setLinks(data || []);

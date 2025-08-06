@@ -2,7 +2,7 @@
 
 ## 🚀 Funcionalidade Implementada
 
-Implementei uma integração completa com a Evolution API para gerenciar a instância do WhatsApp "agent" diretamente na aplicação.
+Implementei uma integração completa com a Evolution API para gerenciar a instância do WhatsApp "agente" diretamente na aplicação.
 
 ## ✨ Características Principais
 
@@ -31,7 +31,7 @@ Implementei uma integração completa com a Evolution API para gerenciar a inst�
 O arquivo `.env` já foi criado com as configurações da sua Evolution API:
 - URL: `https://api.evolution.com.br`
 - API Key: `FFFFDCD5ACCAB4FDBB997191E2C7D`
-- Instância: `agent`
+- Instância: `agente`
 
 ### 2. Fluxo de Uso
 

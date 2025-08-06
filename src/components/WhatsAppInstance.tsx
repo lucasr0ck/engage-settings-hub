@@ -47,7 +47,7 @@ export const WhatsAppInstance = () => {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const INSTANCE_NAME = 'agent';
+  const INSTANCE_NAME = 'agente';
   const API_BASE_URL = import.meta.env.VITE_EVOLUTION_API_URL || 'https://evolution.g116lp.easypanel.host';
   const API_KEY = import.meta.env.VITE_EVOLUTION_API_KEY || 'FFFFDCD5ACCAB4FDBB997191E2C7D';
 
@@ -221,7 +221,7 @@ export const WhatsAppInstance = () => {
         label: 'Não Encontrada',
         color: 'destructive',
         icon: WifiOff,
-        description: 'Instância "agent" não encontrada na Evolution API'
+        description: 'Instância "agente" não encontrada na Evolution API'
       };
     }
 
@@ -294,7 +294,7 @@ export const WhatsAppInstance = () => {
           Status do WhatsApp
         </CardTitle>
         <CardDescription>
-          Monitore e gerencie a conexão da instância "agent" do WhatsApp
+          Monitore e gerencie a conexão da instância "agente" do WhatsApp
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

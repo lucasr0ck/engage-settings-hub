@@ -17,7 +17,7 @@
 #### 2. **Estrutura de Dados Atualizada**
 - **Antes**: Esperava `instance.instanceName` e `instance.status`
 - **Depois**: Usa `name` e `connectionStatus` diretamente
-- **Resultado**: Detecção correta da instância "agent"
+- **Resultado**: Detecção correta da instância "agente"
 
 #### 3. **Interface Atualizada**
 - **Antes**: Interface complexa com aninhamento desnecessário
@@ -31,7 +31,7 @@ A Evolution API retorna instâncias neste formato:
 [
   {
     "id": "51d13979-5897-450b-8bd6-a9be670cd66c",
-    "name": "agent",
+    "name": "agente",
     "connectionStatus": "open",
     "ownerJid": "254702734560@s.whatsapp.net",
     "profileName": "Maciel Trader",
@@ -49,7 +49,7 @@ A Evolution API retorna instâncias neste formato:
 ]
 ```
 
-## 🎯 **Status Atual da Instância "agent"**
+## 🎯 **Status Atual da Instância "agente"**
 
 - ✅ **Status**: "Conectado" (verde)
 - ✅ **Nome**: Maciel Trader
@@ -93,7 +93,7 @@ A Evolution API retorna instâncias neste formato:
 
 A aplicação agora:
 - ✅ **Conecta corretamente** com a Evolution API
-- ✅ **Detecta a instância "agent"** existente
+- ✅ **Detecta a instância "agente"** existente
 - ✅ **Mostra status real** da conexão
 - ✅ **Exibe informações detalhadas** da instância
 - ✅ **Permite gerenciamento** completo (conectar/desconectar/deletar)
@@ -111,4 +111,4 @@ O componente agora inclui logs detalhados no console:
 - 🎯 Instância encontrada
 - ✅ Instância definida
 
-A instância "agent" está sendo detectada corretamente e mostrada como "Conectado" na aplicação! 🎉 
+A instância "agente" está sendo detectada corretamente e mostrada como "Conectado" na aplicação! 🎉 

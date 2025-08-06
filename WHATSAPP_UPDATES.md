@@ -4,7 +4,7 @@
 
 ### ✅ Problema Resolvido
 - **Erro de conexão**: Corrigido o problema de conexão com a Evolution API
-- **Detecção de instância**: Agora detecta corretamente a instância "agent" existente
+- **Detecção de instância**: Agora detecta corretamente a instância "agente" existente
 - **Status em tempo real**: Mostra o status correto da instância conectada
 
 ### 🚫 Funcionalidade Removida
@@ -29,7 +29,7 @@
 
 ### Instância Não Encontrada
 - ❌ **Status**: "Não Encontrada" (vermelho)
-- ❌ **Descrição**: "Instância 'agent' não encontrada na Evolution API"
+- ❌ **Descrição**: "Instância 'agente' não encontrada na Evolution API"
 - ❌ **Ações disponíveis**: Nenhuma ação disponível
 - ❌ **Mensagem**: Orienta o usuário a verificar se a instância existe na Evolution API
 
@@ -76,7 +76,7 @@
 ### Mensagens Informativas:
 - **Conectado**: "WhatsApp conectado - [número do telefone]"
 - **Desconectado**: "Instância desconectada - Clique em 'Conectar' para gerar QR Code"
-- **Não encontrada**: "Instância 'agent' não encontrada na Evolution API"
+- **Não encontrada**: "Instância 'agente' não encontrada na Evolution API"
 
 ## 🔧 Configuração
 
@@ -87,18 +87,18 @@ VITE_EVOLUTION_API_KEY=FFFFDCD5ACCAB4FDBB997191E2C7D
 ```
 
 ### Instância Configurada:
-- **Nome**: "agent"
+- **Nome**: "agente"
 - **Status**: Detectado automaticamente
 - **Ações**: Apenas gerenciamento (conectar/desconectar/deletar)
 
 ## ✅ Resultado Final
 
 A aplicação agora:
-- ✅ **Detecta corretamente** a instância "agent" existente
+- ✅ **Detecta corretamente** a instância "agente" existente
 - ✅ **Mostra status real** da conexão
 - ✅ **Permite reconexão** com QR Code
 - ✅ **Não cria instâncias** desnecessárias
 - ✅ **Interface limpa** e intuitiva
 - ✅ **Feedback claro** para o usuário
 
-A instância "agent" que está conectada na sua Evolution API será detectada automaticamente e mostrada como "Conectado" na aplicação! 
+A instância "agente" que está conectada na sua Evolution API será detectada automaticamente e mostrada como "Conectado" na aplicação! 

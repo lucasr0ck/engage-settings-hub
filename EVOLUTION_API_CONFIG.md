@@ -22,7 +22,7 @@ Baseado nas suas variáveis de ambiente, a configuração está assim:
 
 - **URL da API**: `https://$(PRIMARY_DOMAIN)`
 - **API Key**: `FFFFDCD5ACCAB4FDBB997191E2C7D`
-- **Nome da Instância**: `agent`
+- **Nome da Instância**: `agente`
 - **Webhooks habilitados**: `connection.update` e `qrcode.update`
 
 ## Funcionalidades Implementadas
