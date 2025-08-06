@@ -172,6 +172,56 @@ export const WhatsAppInstance = () => {
     }
   };
 
+  const generateQRCode = async () => {
+    setActionLoading('qrcode');
+    try {
+      // Primeiro conecta a instância
+      const connectResponse = await fetch(`${API_BASE_URL}/instance/connect/${INSTANCE_NAME}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': API_KEY
+        }
+      });
+
+      if (!connectResponse.ok) {
+        throw new Error('Falha ao conectar instância');
+      }
+
+      toast({
+        title: "Gerando QR Code...",
+        description: "Aguarde enquanto o QR Code é gerado.",
+      });
+
+      // Aguarda um pouco e busca o QR Code
+      setTimeout(async () => {
+        try {
+          await fetchQRCode();
+          toast({
+            title: "QR Code gerado!",
+            description: "Clique em 'Ver QR Code' para escaneá-lo.",
+          });
+        } catch (error) {
+          console.error('Error fetching QR Code:', error);
+          toast({
+            title: "Erro ao gerar QR Code",
+            description: "Não foi possível obter o QR Code.",
+            variant: "destructive",
+          });
+        }
+      }, 2000);
+    } catch (error) {
+      console.error('Error generating QR Code:', error);
+      toast({
+        title: "Erro ao gerar QR Code",
+        description: "Não foi possível gerar o QR Code.",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const disconnectInstance = async () => {
     setActionLoading('disconnect');
     try {
@@ -335,77 +385,125 @@ export const WhatsAppInstance = () => {
           </div>
         </div>
 
-        {/* Ações */}
+                {/* Ações */}
         <div className="space-y-3">
           {instanceStatus && instanceStatus.connectionStatus === 'close' && (
-            <Button 
-              onClick={connectInstance}
-              disabled={actionLoading !== null}
-              className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
-            >
-              {actionLoading === 'connect' ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Wifi className="h-4 w-4 mr-2" />
-              )}
-              Conectar
-            </Button>
+            <div className="space-y-2">
+              <Button 
+                onClick={connectInstance}
+                disabled={actionLoading !== null}
+                className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+              >
+                {actionLoading === 'connect' ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Wifi className="h-4 w-4 mr-2" />
+                )}
+                Conectar
+              </Button>
+              
+              <Button 
+                onClick={generateQRCode}
+                disabled={actionLoading !== null}
+                variant="outline"
+                className="w-full"
+              >
+                {actionLoading === 'qrcode' ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <QrCode className="h-4 w-4 mr-2" />
+                )}
+                Gerar QR Code
+              </Button>
+            </div>
           )}
 
           {instanceStatus && instanceStatus.connectionStatus === 'open' && (
-            <Button 
-              variant="outline"
-              onClick={disconnectInstance}
-              disabled={actionLoading !== null}
-              className="w-full"
-            >
-              {actionLoading === 'disconnect' ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <WifiOff className="h-4 w-4 mr-2" />
-              )}
-              Desconectar
-            </Button>
+            <div className="space-y-2">
+              <Button 
+                variant="outline"
+                onClick={disconnectInstance}
+                disabled={actionLoading !== null}
+                className="w-full"
+              >
+                {actionLoading === 'disconnect' ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <WifiOff className="h-4 w-4 mr-2" />
+                )}
+                Desconectar
+              </Button>
+              
+              <Button 
+                onClick={generateQRCode}
+                disabled={actionLoading !== null}
+                variant="outline"
+                className="w-full"
+              >
+                {actionLoading === 'qrcode' ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <QrCode className="h-4 w-4 mr-2" />
+                )}
+                Gerar QR Code
+              </Button>
+            </div>
           )}
 
           {instanceStatus && instanceStatus.connectionStatus === 'qrcode' && qrCodeData && (
-            <Dialog open={qrCodeDialogOpen} onOpenChange={setQrCodeDialogOpen}>
-              <DialogTrigger asChild>
-                <Button 
-                  variant="outline"
-                  className="w-full"
-                >
-                  <Eye className="h-4 w-4 mr-2" />
-                  Ver QR Code
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>QR Code para Conectar WhatsApp</DialogTitle>
-                  <DialogDescription>
-                    Escaneie este QR Code com seu WhatsApp para conectar a instância.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="flex flex-col items-center space-y-4">
-                  <div className="p-4 bg-white rounded-lg">
-                    <img 
-                      src={`data:image/png;base64,${qrCodeData}`} 
-                      alt="QR Code WhatsApp"
-                      className="w-48 h-48"
-                    />
+            <div className="space-y-2">
+              <Dialog open={qrCodeDialogOpen} onOpenChange={setQrCodeDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Ver QR Code
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>QR Code para Conectar WhatsApp</DialogTitle>
+                    <DialogDescription>
+                      Escaneie este QR Code com seu WhatsApp para conectar a instância.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="flex flex-col items-center space-y-4">
+                    <div className="p-4 bg-white rounded-lg">
+                      <img 
+                        src={`data:image/png;base64,${qrCodeData}`} 
+                        alt="QR Code WhatsApp"
+                        className="w-48 h-48"
+                      />
+                    </div>
+                    <div className="text-center space-y-2">
+                      <p className="text-sm font-medium">Como escanear:</p>
+                      <ol className="text-xs text-muted-foreground space-y-1 text-left">
+                        <li>1. Abra o WhatsApp no seu celular</li>
+                        <li>2. Vá em Configurações {'>'} Aparelhos conectados</li>
+                        <li>3. Toque em "Conectar um aparelho"</li>
+                        <li>4. Aponte a câmera para o QR Code</li>
+                      </ol>
+                    </div>
                   </div>
-                  <div className="text-center space-y-2">
-                    <p className="text-sm font-medium">Como escanear:</p>
-                    <ol className="text-xs text-muted-foreground space-y-1 text-left">
-                      <li>1. Abra o WhatsApp no seu celular</li>
-                                              <li>2. Vá em Configurações {'>'} Aparelhos conectados</li>
-                      <li>3. Toque em "Conectar um aparelho"</li>
-                      <li>4. Aponte a câmera para o QR Code</li>
-                    </ol>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+                </DialogContent>
+              </Dialog>
+              
+              <Button 
+                onClick={generateQRCode}
+                disabled={actionLoading !== null}
+                variant="outline"
+                className="w-full"
+              >
+                {actionLoading === 'qrcode' ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <QrCode className="h-4 w-4 mr-2" />
+                )}
+                Gerar Novo QR Code
+              </Button>
+            </div>
           )}
 
           {!instanceStatus && (
