@@ -1,24 +1,11 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
-import { 
-  MessageCircle, 
-  QrCode, 
-  Wifi, 
-  WifiOff, 
-  RefreshCw, 
-  Trash2, 
-  Smartphone,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Loader2
-} from 'lucide-react';
+import { MessageCircle, CheckCircle, WifiOff, Wifi, Loader2, QrCode, RefreshCw, Trash2, Smartphone, User, MessageSquare, Clock } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface InstanceStatus {
   id: string;
@@ -40,12 +27,11 @@ interface InstanceStatus {
   };
 }
 
-
-
 export const WhatsAppInstance = () => {
   const [instanceStatus, setInstanceStatus] = useState<InstanceStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   const INSTANCE_NAME = 'agente';
   const API_BASE_URL = import.meta.env.VITE_EVOLUTION_API_URL || 'https://evolution.g116lp.easypanel.host';
@@ -107,8 +93,6 @@ export const WhatsAppInstance = () => {
     }
   };
 
-
-
   const connectInstance = async () => {
     setActionLoading('connect');
     try {
@@ -161,14 +145,11 @@ export const WhatsAppInstance = () => {
       }
 
       toast({
-        title: "Desconectado!",
-        description: "A instância foi desconectada. Clique em 'Conectar' para gerar um novo QR Code.",
+        title: "Desconectando...",
+        description: "A instância está sendo desconectada.",
       });
 
-      // Aguarda um pouco e busca o status novamente
-      setTimeout(() => {
-        fetchInstanceStatus();
-      }, 1000);
+      fetchInstanceStatus();
     } catch (error) {
       console.error('Error disconnecting instance:', error);
       toast({
@@ -221,7 +202,9 @@ export const WhatsAppInstance = () => {
         label: 'Não Encontrada',
         color: 'destructive',
         icon: WifiOff,
-        description: 'Instância "agente" não encontrada na Evolution API'
+        description: 'Instância "agente" não encontrada na Evolution API',
+        bgColor: 'bg-red-500/10',
+        borderColor: 'border-red-500/20'
       };
     }
 
@@ -234,7 +217,9 @@ export const WhatsAppInstance = () => {
           label: 'Conectado',
           color: 'default',
           icon: CheckCircle,
-          description: `WhatsApp conectado${instanceStatus.profileName ? ` - ${instanceStatus.profileName}` : ''}`
+          description: `WhatsApp conectado${instanceStatus.profileName ? ` - ${instanceStatus.profileName}` : ''}`,
+          bgColor: 'bg-green-500/10',
+          borderColor: 'border-green-500/20'
         };
       case 'connecting':
         return {
@@ -242,7 +227,9 @@ export const WhatsAppInstance = () => {
           label: 'Conectando...',
           color: 'secondary',
           icon: Loader2,
-          description: 'Aguardando conexão'
+          description: 'Aguardando conexão',
+          bgColor: 'bg-yellow-500/10',
+          borderColor: 'border-yellow-500/20'
         };
       case 'qrcode':
         return {
@@ -250,7 +237,9 @@ export const WhatsAppInstance = () => {
           label: 'QR Code Disponível',
           color: 'default',
           icon: QrCode,
-          description: 'Escaneie o QR Code para conectar'
+          description: 'Escaneie o QR Code para conectar',
+          bgColor: 'bg-blue-500/10',
+          borderColor: 'border-blue-500/20'
         };
       case 'close':
       default:
@@ -259,7 +248,9 @@ export const WhatsAppInstance = () => {
           label: 'Desconectado',
           color: 'destructive',
           icon: WifiOff,
-          description: 'Instância desconectada - Clique em "Conectar" para gerar QR Code'
+          description: 'Instância desconectada - Clique em "Conectar" para gerar QR Code',
+          bgColor: 'bg-red-500/10',
+          borderColor: 'border-red-500/20'
         };
     }
   };
@@ -269,7 +260,7 @@ export const WhatsAppInstance = () => {
 
   if (loading) {
     return (
-      <Card>
+      <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-card/50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageCircle className="h-5 w-5" />
@@ -278,8 +269,8 @@ export const WhatsAppInstance = () => {
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <span className="ml-2">Carregando status...</span>
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mr-3"></div>
+            <span className="text-muted-foreground">Carregando status...</span>
           </div>
         </CardContent>
       </Card>
@@ -287,7 +278,7 @@ export const WhatsAppInstance = () => {
   }
 
   return (
-    <Card>
+    <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-card/50">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <MessageCircle className="h-5 w-5 text-primary" />
@@ -299,47 +290,48 @@ export const WhatsAppInstance = () => {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Status da Instância */}
-        <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-full bg-background">
-              <StatusIcon className={`h-5 w-5 ${
-                statusInfo.status === 'connected' ? 'text-green-600' :
-                statusInfo.status === 'connecting' ? 'text-yellow-600' :
-                statusInfo.status === 'qrcode' ? 'text-blue-600' :
-                statusInfo.status === 'not_found' ? 'text-red-600' :
-                'text-red-600'
-              }`} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold">Instância: {INSTANCE_NAME}</h3>
-                <Badge variant={statusInfo.color as any}>
-                  {statusInfo.label}
-                </Badge>
+        <div className={`p-4 rounded-xl border ${statusInfo.borderColor} ${statusInfo.bgColor} transition-all duration-200`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-full bg-background/80 shadow-sm">
+                <StatusIcon className={`h-5 w-5 ${
+                  statusInfo.status === 'connected' ? 'text-green-600' :
+                  statusInfo.status === 'connecting' ? 'text-yellow-600' :
+                  statusInfo.status === 'qrcode' ? 'text-blue-600' :
+                  statusInfo.status === 'not_found' ? 'text-red-600' :
+                  'text-red-600'
+                }`} />
               </div>
-              <p className="text-sm text-muted-foreground">{statusInfo.description}</p>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-semibold text-sm">Instância: {INSTANCE_NAME}</h3>
+                  <Badge variant={statusInfo.color as any} className="text-xs">
+                    {statusInfo.label}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">{statusInfo.description}</p>
+              </div>
             </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchInstanceStatus}
+              disabled={actionLoading !== null}
+              className="h-8 w-8 p-0"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
           </div>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchInstanceStatus}
-            disabled={actionLoading !== null}
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
         </div>
 
-
-
         {/* Ações */}
-        <div className="flex flex-wrap gap-2">
+        <div className="space-y-3">
           {instanceStatus && instanceStatus.connectionStatus === 'close' && (
             <Button 
               onClick={connectInstance}
               disabled={actionLoading !== null}
-              className="flex-1"
+              className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
             >
               {actionLoading === 'connect' ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -355,7 +347,7 @@ export const WhatsAppInstance = () => {
               variant="outline"
               onClick={disconnectInstance}
               disabled={actionLoading !== null}
-              className="flex-1"
+              className="w-full"
             >
               {actionLoading === 'disconnect' ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -372,7 +364,7 @@ export const WhatsAppInstance = () => {
                 <Button 
                   variant="destructive"
                   disabled={actionLoading !== null}
-                  className="flex-1"
+                  className="w-full"
                 >
                   {actionLoading === 'delete' ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -404,12 +396,15 @@ export const WhatsAppInstance = () => {
           )}
 
           {!instanceStatus && (
-            <div className="w-full text-center py-4">
-              <p className="text-sm text-muted-foreground">
-                Instância "{INSTANCE_NAME}" não encontrada na Evolution API.
+            <div className="text-center py-4">
+              <div className="mx-auto w-12 h-12 bg-muted/50 rounded-full flex items-center justify-center mb-3">
+                <WifiOff className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <p className="text-sm text-muted-foreground mb-1">
+                Instância "{INSTANCE_NAME}" não encontrada
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Certifique-se de que a instância existe e está configurada corretamente.
+              <p className="text-xs text-muted-foreground">
+                Verifique se a instância existe na Evolution API
               </p>
             </div>
           )}
@@ -417,18 +412,35 @@ export const WhatsAppInstance = () => {
 
         {/* Informações Adicionais */}
         {instanceStatus && (
-          <div className="text-xs text-muted-foreground space-y-1">
-            <p>• Status atual: {instanceStatus.connectionStatus}</p>
-            {instanceStatus.profileName && (
-              <p>• Nome: {instanceStatus.profileName}</p>
-            )}
-            {instanceStatus.ownerJid && (
-              <p>• WhatsApp: {instanceStatus.ownerJid}</p>
-            )}
-            {instanceStatus._count && (
-              <p>• Mensagens: {instanceStatus._count.Message.toLocaleString()}</p>
-            )}
-            <p>• Última atualização: {new Date().toLocaleTimeString('pt-BR')}</p>
+          <div className="space-y-2 pt-4 border-t border-border/30">
+            <div className="grid grid-cols-1 gap-2 text-xs">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Smartphone className="h-3 w-3" />
+                <span>Status: {instanceStatus.connectionStatus}</span>
+              </div>
+              {instanceStatus.profileName && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <User className="h-3 w-3" />
+                  <span>Nome: {instanceStatus.profileName}</span>
+                </div>
+              )}
+              {instanceStatus.ownerJid && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <MessageCircle className="h-3 w-3" />
+                  <span>WhatsApp: {instanceStatus.ownerJid}</span>
+                </div>
+              )}
+              {instanceStatus._count && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <MessageSquare className="h-3 w-3" />
+                  <span>Mensagens: {instanceStatus._count.Message.toLocaleString()}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                <span>Atualizado: {new Date().toLocaleTimeString('pt-BR')}</span>
+              </div>
+            </div>
           </div>
         )}
       </CardContent>

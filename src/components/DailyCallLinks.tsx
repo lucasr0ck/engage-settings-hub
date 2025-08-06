@@ -5,13 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Video, ExternalLink, Calendar, Save } from 'lucide-react';
+import { Plus, Edit, Trash2, Video, ExternalLink, Calendar, Save, Link as LinkIcon, Clock, CalendarDays } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DailyCallLink {
   id: number;
@@ -29,6 +29,7 @@ export const DailyCallLinks = () => {
   const [formData, setFormData] = useState({ call_date: '', meet_link: '' });
   const [bulkLinks, setBulkLinks] = useState('');
   const [editingDate, setEditingDate] = useState('');
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchLinks();
@@ -274,7 +275,7 @@ export const DailyCallLinks = () => {
 
   if (loading) {
     return (
-      <Card>
+      <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-card/50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Video className="h-5 w-5" />
@@ -282,14 +283,17 @@ export const DailyCallLinks = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8">Carregando links...</div>
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Carregando links...</p>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
+    <Card className="border-0 shadow-lg bg-gradient-to-br from-card to-card/50">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Video className="h-5 w-5 text-primary" />
@@ -300,11 +304,12 @@ export const DailyCallLinks = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          <div className="flex justify-end gap-2">
+        <div className="space-y-6">
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
             <Dialog open={bulkDialogOpen} onOpenChange={setBulkDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" onClick={openBulkDialog}>
+                <Button variant="outline" onClick={openBulkDialog} className="w-full sm:w-auto">
                   <Calendar className="h-4 w-4 mr-2" />
                   Adicionar em Massa
                 </Button>
@@ -346,7 +351,7 @@ export const DailyCallLinks = () => {
 
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button onClick={() => openDialog()}>
+                <Button onClick={() => openDialog()} className="w-full sm:w-auto">
                   <Plus className="h-4 w-4 mr-2" />
                   Adicionar Link
                 </Button>
@@ -395,115 +400,120 @@ export const DailyCallLinks = () => {
             </Dialog>
           </div>
 
+          {/* Links Grid */}
           {links.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Nenhum link cadastrado. Clique em "Adicionar Link" para começar.
+            <div className="text-center py-12">
+              <div className="mx-auto w-16 h-16 bg-muted/50 rounded-full flex items-center justify-center mb-4">
+                <LinkIcon className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-medium text-muted-foreground mb-2">Nenhum link cadastrado</h3>
+              <p className="text-sm text-muted-foreground mb-4">Clique em "Adicionar Link" para começar.</p>
             </div>
           ) : (
-            <div className="border rounded-lg">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Link</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {links.map((link) => (
-                    <TableRow key={link.id}>
-                      <TableCell className="font-medium">
-                        {editingDateId === link.id ? (
-                          <div className="flex items-center gap-2">
-                            <Input
-                              type="date"
-                              value={editingDate}
-                              onChange={(e) => setEditingDate(e.target.value)}
-                              onKeyDown={(e) => handleDateKeyDown(e, link.id)}
-                              className="w-32 bg-input"
-                              autoFocus
-                            />
-                            <Button
-                              size="sm"
-                              onClick={() => saveDateEdit(link.id)}
-                              className="h-8 px-2"
-                            >
-                              <Save className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={cancelDateEdit}
-                              className="h-8 px-2"
-                            >
-                              ✕
-                            </Button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => startEditingDate(link)}
-                            className="hover:bg-muted px-2 py-1 rounded transition-colors flex items-center gap-1"
-                            title="Clique para editar a data"
-                          >
-                            <Calendar className="h-3 w-3" />
-                            {format(new Date(link.call_date), 'dd/MM/yyyy', { locale: ptBR })}
-                          </button>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <a 
-                          href={link.meet_link} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-primary hover:underline"
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {links.map((link) => (
+                <div
+                  key={link.id}
+                  className="group relative p-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card/80 hover:border-border transition-all duration-200 hover:shadow-md"
+                >
+                  {/* Date Section */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <CalendarDays className="h-4 w-4 text-primary" />
+                    {editingDateId === link.id ? (
+                      <div className="flex items-center gap-2 flex-1">
+                        <Input
+                          type="date"
+                          value={editingDate}
+                          onChange={(e) => setEditingDate(e.target.value)}
+                          onKeyDown={(e) => handleDateKeyDown(e, link.id)}
+                          className="h-8 text-sm bg-input"
+                          autoFocus
+                        />
+                        <Button
+                          size="sm"
+                          onClick={() => saveDateEdit(link.id)}
+                          className="h-8 px-2"
                         >
-                          <ExternalLink className="h-4 w-4" />
-                          {link.meet_link.length > 40 
-                            ? `${link.meet_link.substring(0, 40)}...` 
-                            : link.meet_link
-                          }
-                        </a>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
+                          <Save className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={cancelDateEdit}
+                          className="h-8 px-2"
+                        >
+                          ✕
+                        </Button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => startEditingDate(link)}
+                        className="text-sm font-medium text-foreground hover:text-primary transition-colors flex items-center gap-1"
+                        title="Clique para editar a data"
+                      >
+                        {format(new Date(link.call_date), 'dd/MM/yyyy', { locale: ptBR })}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Link Section */}
+                  <div className="space-y-3">
+                    <a 
+                      href={link.meet_link} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors group/link"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      <span className="text-sm truncate">
+                        {link.meet_link.replace('https://', '').replace('http://', '')}
+                      </span>
+                    </a>
+                    
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 pt-2 border-t border-border/30">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openDialog(link)}
+                        className="flex-1 h-8 text-xs"
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        Editar
+                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
                             size="sm"
-                            onClick={() => openDialog(link)}
+                            className="h-8 px-2 text-destructive hover:text-destructive"
                           >
-                            <Edit className="h-4 w-4" />
+                            <Trash2 className="h-3 w-3" />
                           </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Tem certeza que deseja excluir o link para {format(new Date(link.call_date), 'dd/MM/yyyy', { locale: ptBR })}? 
-                                  Esta ação não pode ser desfeita.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => deleteLink(link.id)}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                  Excluir
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Tem certeza que deseja excluir o link para {format(new Date(link.call_date), 'dd/MM/yyyy', { locale: ptBR })}? 
+                              Esta ação não pode ser desfeita.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteLink(link.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Excluir
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
