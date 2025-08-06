@@ -401,10 +401,22 @@ export const WhatsAppInstance = () => {
 
           {instanceStatus && instanceStatus.connectionStatus === 'open' && (
             <div className="space-y-2">
+              <div className="text-center py-4">
+                <div className="mx-auto w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mb-3">
+                  <CheckCircle className="h-6 w-6 text-green-600" />
+                </div>
+                <p className="text-sm text-muted-foreground mb-1">
+                  WhatsApp conectado
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {instanceStatus.profileName ? `- ${instanceStatus.profileName}` : ''}
+                </p>
+              </div>
+              
               <Button 
-                variant="outline"
                 onClick={disconnectInstance}
                 disabled={actionLoading !== null}
+                variant="destructive"
                 className="w-full"
               >
                 {actionLoading === 'disconnect' ? (
@@ -548,29 +560,50 @@ export const WhatsAppInstance = () => {
       {/* Dialog do QR Code - Sempre disponível quando há QR Code */}
       {qrCodeData && (
         <Dialog open={qrCodeDialogOpen} onOpenChange={setQrCodeDialogOpen}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-sm sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>QR Code para Conectar WhatsApp</DialogTitle>
+              <DialogTitle className="flex items-center gap-2">
+                <QrCode className="h-5 w-5 text-primary" />
+                QR Code para Conectar WhatsApp
+              </DialogTitle>
               <DialogDescription>
-                Escaneie este QR Code com seu WhatsApp para conectar a instância.
+                Escaneie este QR Code com seu WhatsApp para conectar a instância "agente".
               </DialogDescription>
             </DialogHeader>
-            <div className="flex flex-col items-center space-y-4">
-              <div className="p-4 bg-white rounded-lg">
+            <div className="flex flex-col items-center space-y-6">
+              <div className="p-6 bg-white rounded-xl shadow-lg border-2 border-gray-200">
                 <img 
                   src={`data:image/png;base64,${qrCodeData}`} 
                   alt="QR Code WhatsApp"
-                  className="w-48 h-48"
+                  className="w-40 h-40 sm:w-48 sm:h-48"
+                  style={{ imageRendering: 'pixelated' }}
                 />
               </div>
-              <div className="text-center space-y-2">
-                <p className="text-sm font-medium">Como escanear:</p>
-                <ol className="text-xs text-muted-foreground space-y-1 text-left">
-                  <li>1. Abra o WhatsApp no seu celular</li>
-                  <li>2. Vá em Configurações {'>'} Aparelhos conectados</li>
-                  <li>3. Toque em "Conectar um aparelho"</li>
-                  <li>4. Aponte a câmera para o QR Code</li>
+              <div className="text-center space-y-3 w-full">
+                <p className="text-sm font-semibold text-primary">Como escanear:</p>
+                <ol className="text-xs text-muted-foreground space-y-2 text-left max-w-xs mx-auto">
+                  <li className="flex items-start gap-2">
+                    <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
+                    <span>Abra o WhatsApp no seu celular</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
+                    <span>Vá em Configurações {'>'} Aparelhos conectados</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
+                    <span>Toque em "Conectar um aparelho"</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">4</span>
+                    <span>Aponte a câmera para o QR Code</span>
+                  </li>
                 </ol>
+              </div>
+              <div className="text-center pt-2">
+                <p className="text-xs text-muted-foreground">
+                  O QR Code expira em alguns minutos. Se não conseguir escanear, gere um novo.
+                </p>
               </div>
             </div>
           </DialogContent>
