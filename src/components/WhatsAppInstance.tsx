@@ -107,7 +107,7 @@ export const WhatsAppInstance = () => {
     try {
       console.log('🔍 Buscando QR Code...');
       
-      const response = await fetch(`${API_BASE_URL}/instance/qrcode/${INSTANCE_NAME}`, {
+      const response = await fetch(`${API_BASE_URL}/instance/connect/${INSTANCE_NAME}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -122,8 +122,10 @@ export const WhatsAppInstance = () => {
       const data = await response.json();
       console.log('📦 QR Code recebido:', data);
       
-      if (data.qrcode) {
-        setQrCodeData(data.qrcode);
+      if (data.base64) {
+        // Remove o prefixo "data:image/png;base64," se existir
+        const base64Data = data.base64.replace('data:image/png;base64,', '');
+        setQrCodeData(base64Data);
         console.log('✅ QR Code definido');
       }
     } catch (error) {
@@ -175,43 +177,20 @@ export const WhatsAppInstance = () => {
   const generateQRCode = async () => {
     setActionLoading('qrcode');
     try {
-      // Primeiro conecta a instância
-      const connectResponse = await fetch(`${API_BASE_URL}/instance/connect/${INSTANCE_NAME}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': API_KEY
-        }
-      });
-
-      if (!connectResponse.ok) {
-        throw new Error('Falha ao conectar instância');
-      }
-
       toast({
         title: "Gerando QR Code...",
         description: "Aguarde enquanto o QR Code é gerado.",
       });
 
-      // Aguarda um pouco e busca o QR Code
-      setTimeout(async () => {
-        try {
-          await fetchQRCode();
-          // Abre automaticamente o popup do QR Code
-          setQrCodeDialogOpen(true);
-          toast({
-            title: "QR Code gerado!",
-            description: "QR Code disponível para escaneamento.",
-          });
-        } catch (error) {
-          console.error('Error fetching QR Code:', error);
-          toast({
-            title: "Erro ao gerar QR Code",
-            description: "Não foi possível obter o QR Code.",
-            variant: "destructive",
-          });
-        }
-      }, 2000);
+      // Busca o QR Code diretamente
+      await fetchQRCode();
+      
+      // Abre automaticamente o popup do QR Code
+      setQrCodeDialogOpen(true);
+      toast({
+        title: "QR Code gerado!",
+        description: "QR Code disponível para escaneamento.",
+      });
     } catch (error) {
       console.error('Error generating QR Code:', error);
       toast({
