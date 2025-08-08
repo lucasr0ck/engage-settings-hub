@@ -48,6 +48,47 @@ const formatDate = (dateString: string): string => {
   }
 };
 
+// Utility function to normalize date for database storage
+const normalizeDateForDB = (dateString: string): string => {
+  try {
+    // Parse the date and create a new date in local timezone
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      throw new Error('Invalid date');
+    }
+    
+    // Format as YYYY-MM-DD to avoid timezone issues
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+  } catch (error) {
+    console.error('Error normalizing date:', error);
+    return dateString; // Return original if error
+  }
+};
+
+// Utility function to get date for input field
+const getDateForInput = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+    
+    // Format as YYYY-MM-DD for input field
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+  } catch (error) {
+    console.error('Error getting date for input:', error);
+    return '';
+  }
+};
+
 interface DailyCallLink {
   id: number;
   call_date: string;
@@ -102,7 +143,10 @@ export const DailyCallLinks = () => {
   const openDialog = (link?: DailyCallLink) => {
     if (link) {
       setEditingLink(link);
-      setFormData({ call_date: link.call_date, meet_link: link.meet_link });
+      setFormData({ 
+        call_date: getDateForInput(link.call_date), 
+        meet_link: link.meet_link 
+      });
     } else {
       setEditingLink(null);
       setFormData({ call_date: '', meet_link: '' });
@@ -150,7 +194,7 @@ export const DailyCallLinks = () => {
     try {
       const today = new Date();
       const linksToInsert = linksArray.map((link, index) => ({
-        call_date: format(addDays(today, index), 'yyyy-MM-dd'),
+        call_date: normalizeDateForDB(format(addDays(today, index), 'yyyy-MM-dd')),
         meet_link: ensureProtocol(link.trim())
       }));
 
@@ -187,14 +231,16 @@ export const DailyCallLinks = () => {
 
   const startEditingDate = (link: DailyCallLink) => {
     setEditingDateId(link.id);
-    setEditingDate(link.call_date);
+    setEditingDate(getDateForInput(link.call_date));
   };
 
   const saveDateEdit = async (linkId: number) => {
     try {
+      const normalizedDate = normalizeDateForDB(editingDate);
+      
       const { error } = await supabase
         .from('daily_call_links')
-        .update({ call_date: editingDate })
+        .update({ call_date: normalizedDate })
         .eq('id', linkId);
 
       if (error) throw error;
@@ -245,7 +291,7 @@ export const DailyCallLinks = () => {
         const { error } = await supabase
           .from('daily_call_links')
           .update({
-            call_date: formData.call_date,
+            call_date: normalizeDateForDB(formData.call_date),
             meet_link: ensureProtocol(formData.meet_link),
           })
           .eq('id', editingLink.id);
@@ -261,7 +307,7 @@ export const DailyCallLinks = () => {
         const { error } = await supabase
           .from('daily_call_links')
           .insert({
-            call_date: formData.call_date,
+            call_date: normalizeDateForDB(formData.call_date),
             meet_link: ensureProtocol(formData.meet_link),
           });
 
