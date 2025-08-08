@@ -13,6 +13,27 @@ import { format, addDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useIsMobile } from '@/hooks/use-mobile';
 
+// Utility function to ensure the link has the correct protocol
+const ensureProtocol = (url: string): string => {
+  if (!url) return url;
+  
+  // Remove any leading/trailing whitespace
+  const trimmedUrl = url.trim();
+  
+  // If it already starts with http:// or https://, return as is
+  if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+    return trimmedUrl;
+  }
+  
+  // If it starts with //, add https:
+  if (trimmedUrl.startsWith('//')) {
+    return `https:${trimmedUrl}`;
+  }
+  
+  // If it's a relative path or just domain, add https://
+  return `https://${trimmedUrl}`;
+};
+
 interface DailyCallLink {
   id: number;
   call_date: string;
@@ -108,7 +129,7 @@ export const DailyCallLinks = () => {
       const today = new Date();
       const linksToInsert = linksArray.map((link, index) => ({
         call_date: format(addDays(today, index), 'yyyy-MM-dd'),
-        meet_link: link.trim()
+        meet_link: ensureProtocol(link.trim())
       }));
 
       const { error } = await supabase
@@ -203,7 +224,7 @@ export const DailyCallLinks = () => {
           .from('daily_call_links')
           .update({
             call_date: formData.call_date,
-            meet_link: formData.meet_link,
+            meet_link: ensureProtocol(formData.meet_link),
           })
           .eq('id', editingLink.id);
 
@@ -219,7 +240,7 @@ export const DailyCallLinks = () => {
           .from('daily_call_links')
           .insert({
             call_date: formData.call_date,
-            meet_link: formData.meet_link,
+            meet_link: ensureProtocol(formData.meet_link),
           });
 
         if (error) throw error;
@@ -459,14 +480,14 @@ export const DailyCallLinks = () => {
                   {/* Link Section */}
                   <div className="space-y-3">
                     <a 
-                      href={link.meet_link} 
+                      href={ensureProtocol(link.meet_link)} 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors group/link"
                     >
                       <ExternalLink className="h-4 w-4" />
                       <span className="text-sm truncate">
-                        {link.meet_link.replace('https://', '').replace('http://', '')}
+                        {ensureProtocol(link.meet_link).replace('https://', '').replace('http://', '')}
                       </span>
                     </a>
                     
