@@ -37,14 +37,33 @@ const ensureProtocol = (url: string): string => {
 // Utility function to format date consistently
 const formatDate = (dateString: string): string => {
   try {
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      return 'Data inválida';
-    }
+    const date = parseDateBrazilian(dateString);
     return format(date, 'dd/MM/yyyy', { locale: ptBR });
   } catch (error) {
     console.error('Error formatting date:', error);
     return 'Data inválida';
+  }
+};
+
+// Utility function to parse date considering Brazilian timezone
+const parseDateBrazilian = (dateString: string): Date => {
+  try {
+    // Se já está no formato YYYY-MM-DD, criar data no timezone brasileiro
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      const [year, month, day] = dateString.split('-').map(Number);
+      // Criar data no timezone local (Brasil) sem conversão UTC
+      return new Date(year, month - 1, day);
+    }
+    
+    // Para outros formatos, usar o parser padrão
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      throw new Error('Invalid date');
+    }
+    return date;
+  } catch (error) {
+    console.error('Error parsing date:', error);
+    throw error;
   }
 };
 
@@ -56,11 +75,8 @@ const normalizeDateForDB = (dateString: string): string => {
       return dateString;
     }
     
-    // Parse the date and create a new date in local timezone
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      throw new Error('Invalid date');
-    }
+    // Parse the date considering Brazilian timezone
+    const date = parseDateBrazilian(dateString);
     
     // Format as YYYY-MM-DD to avoid timezone issues
     const year = date.getFullYear();
@@ -82,10 +98,8 @@ const getDateForInput = (dateString: string): string => {
       return dateString;
     }
     
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      return '';
-    }
+    // Parse the date considering Brazilian timezone
+    const date = parseDateBrazilian(dateString);
     
     // Format as YYYY-MM-DD for input field
     const year = date.getFullYear();
@@ -132,8 +146,8 @@ export const DailyCallLinks = () => {
       
       // Garantir ordenação cronológica correta
       const sortedLinks = (data || []).sort((a, b) => {
-        const dateA = new Date(a.call_date);
-        const dateB = new Date(b.call_date);
+        const dateA = parseDateBrazilian(a.call_date);
+        const dateB = parseDateBrazilian(b.call_date);
         return dateA.getTime() - dateB.getTime();
       });
       
