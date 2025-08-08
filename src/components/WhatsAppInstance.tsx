@@ -36,7 +36,7 @@ export const WhatsAppInstance = () => {
   const [qrCodeDialogOpen, setQrCodeDialogOpen] = useState(false);
   const isMobile = useIsMobile();
 
-  const INSTANCE_NAME = 'agente';
+  const INSTANCE_NAME = 'agent';
   const API_BASE_URL = import.meta.env.VITE_EVOLUTION_API_URL || 'https://evolution.g116lp.easypanel.host';
   const API_KEY = import.meta.env.VITE_EVOLUTION_API_KEY || 'FFFFDCD5ACCAB4FDBB997191E2C7D';
 
@@ -243,7 +243,7 @@ export const WhatsAppInstance = () => {
         label: 'Não Encontrada',
         color: 'destructive',
         icon: WifiOff,
-        description: 'Instância "agente" não encontrada na Evolution API',
+        description: 'Instância "agent" não encontrada na Evolution API',
         bgColor: 'bg-red-500/10',
         borderColor: 'border-red-500/20'
       };
@@ -326,7 +326,7 @@ export const WhatsAppInstance = () => {
           Status do WhatsApp
         </CardTitle>
         <CardDescription>
-          Monitore e gerencie a conexão da instância "agente" do WhatsApp
+          Monitore e gerencie a conexão da instância "agent" do WhatsApp
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -567,7 +567,7 @@ export const WhatsAppInstance = () => {
                 QR Code para Conectar WhatsApp
               </DialogTitle>
               <DialogDescription>
-                Escaneie este QR Code com seu WhatsApp para conectar a instância "agente".
+                Escaneie este QR Code com seu WhatsApp para conectar a instância "agent".
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col items-center space-y-6">
