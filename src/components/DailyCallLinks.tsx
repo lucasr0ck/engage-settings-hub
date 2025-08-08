@@ -34,6 +34,20 @@ const ensureProtocol = (url: string): string => {
   return `https://${trimmedUrl}`;
 };
 
+// Utility function to format date consistently
+const formatDate = (dateString: string): string => {
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return 'Data inválida';
+    }
+    return format(date, 'dd/MM/yyyy', { locale: ptBR });
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Data inválida';
+  }
+};
+
 interface DailyCallLink {
   id: number;
   call_date: string;
@@ -64,7 +78,15 @@ export const DailyCallLinks = () => {
         .order('call_date', { ascending: true });
 
       if (error) throw error;
-      setLinks(data || []);
+      
+      // Garantir ordenação cronológica correta
+      const sortedLinks = (data || []).sort((a, b) => {
+        const dateA = new Date(a.call_date);
+        const dateB = new Date(b.call_date);
+        return dateA.getTime() - dateB.getTime();
+      });
+      
+      setLinks(sortedLinks);
     } catch (error) {
       console.error('Error fetching links:', error);
       toast({
@@ -431,15 +453,21 @@ export const DailyCallLinks = () => {
               <p className="text-sm text-muted-foreground mb-4">Clique em "Adicionar Link" para começar.</p>
             </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {links.map((link) => (
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-fr">
+              {links.map((link, index) => (
                 <div
                   key={link.id}
-                  className="group relative p-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card/80 hover:border-border transition-all duration-200 hover:shadow-md"
+                  className="group relative p-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card/80 hover:border-border transition-all duration-200 hover:shadow-md order-first"
+                  style={{ order: index }}
                 >
                   {/* Date Section */}
                   <div className="flex items-center gap-2 mb-3">
-                    <CalendarDays className="h-4 w-4 text-primary" />
+                    <div className="flex items-center gap-2">
+                      <CalendarDays className="h-4 w-4 text-primary" />
+                      <span className="text-xs text-muted-foreground font-mono">
+                        #{index + 1}
+                      </span>
+                    </div>
                     {editingDateId === link.id ? (
                       <div className="flex items-center gap-2 flex-1">
                         <Input
@@ -472,7 +500,7 @@ export const DailyCallLinks = () => {
                         className="text-sm font-medium text-foreground hover:text-primary transition-colors flex items-center gap-1"
                         title="Clique para editar a data"
                       >
-                        {format(new Date(link.call_date), 'dd/MM/yyyy', { locale: ptBR })}
+                        {formatDate(link.call_date)}
                       </button>
                     )}
                   </div>
@@ -516,7 +544,7 @@ export const DailyCallLinks = () => {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Tem certeza que deseja excluir o link para {format(new Date(link.call_date), 'dd/MM/yyyy', { locale: ptBR })}? 
+                              Tem certeza que deseja excluir o link para {formatDate(link.call_date)}? 
                               Esta ação não pode ser desfeita.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
