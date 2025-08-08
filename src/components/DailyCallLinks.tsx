@@ -51,6 +51,11 @@ const formatDate = (dateString: string): string => {
 // Utility function to normalize date for database storage
 const normalizeDateForDB = (dateString: string): string => {
   try {
+    // Se já está no formato YYYY-MM-DD, retorna como está
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      return dateString;
+    }
+    
     // Parse the date and create a new date in local timezone
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
@@ -72,6 +77,11 @@ const normalizeDateForDB = (dateString: string): string => {
 // Utility function to get date for input field
 const getDateForInput = (dateString: string): string => {
   try {
+    // Se já está no formato YYYY-MM-DD, retorna como está
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      return dateString;
+    }
+    
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
       return '';
@@ -192,11 +202,17 @@ export const DailyCallLinks = () => {
 
     setLoading(true);
     try {
+      // Criar data de hoje sem hora para evitar problemas de timezone
       const today = new Date();
-      const linksToInsert = linksArray.map((link, index) => ({
-        call_date: normalizeDateForDB(format(addDays(today, index), 'yyyy-MM-dd')),
-        meet_link: ensureProtocol(link.trim())
-      }));
+      const todayClean = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      
+      const linksToInsert = linksArray.map((link, index) => {
+        const targetDate = addDays(todayClean, index);
+        return {
+          call_date: normalizeDateForDB(format(targetDate, 'yyyy-MM-dd')),
+          meet_link: ensureProtocol(link.trim())
+        };
+      });
 
       const { error } = await supabase
         .from('daily_call_links')
